@@ -1,0 +1,91 @@
+import { getCookie } from '../utils/utils';
+
+const routes = [
+	{
+		path: '/',
+		getComponents: (nextState, callback) => {
+			require.ensure([], (require) => {
+				callback(null, require('../containers/Layout/Layout').default);
+			}, 'layout');
+		},
+		indexRoute: { onEnter: (nextState, replace) => replace('/task/list') },
+		childRoutes: [
+			{
+				path: 'task',
+				indexRoute: { onEnter: (nextState, replace) => replace('/task/list') },
+				childRoutes: [
+					{
+						path: 'list',
+						getComponents: (nextState, callback) => {
+							require.ensure([], (require) => {
+								callback(null, require('../containers/Task/Task').default);
+							}, 'task-list');
+						}
+					},
+					{
+						path: 'add',
+						getComponents: (nextState, callback) => {
+							require.ensure([], (require) => {
+								callback(null, require('../containers/Task/AddTaskForm').default);
+							}, 'addTask');
+						}
+					}
+				]
+			},
+			{
+				path: 'organize',
+				indexRoute: { onEnter: (nextState, replace) => replace('/task/group-list') },
+				childRoutes: [
+					{
+						path: 'group-list',
+						getComponents: (nextState, callback) => {
+							require.ensure([], (require) => {
+								callback(null, require('../containers/Organize/OrganizeGroup').default);
+							}, 'group-list');
+						}
+					},
+					{
+						path: 'person-list',
+						getComponents: (nextState, callback) => {
+							require.ensure([], (require) => {
+								callback(null, require('../containers/Organize/OrganizePersonList').default);
+							}, 'person-list');
+						}
+					},
+					{
+						path: 'position-list',
+						getComponents: (nextState, callback) => {
+							require.ensure([], (require) => {
+								callback(null, require('../containers/Organize/OrganizePosition').default);
+							}, 'position-list');
+						}
+					}
+				]
+			},
+		],
+		onEnter:(nextState, replace, callback) => {
+			if (!getCookie('user_id')) {
+				replace({ pathname: '/login' });
+			}
+			callback();
+		}
+	},
+	{
+		path: '/login',
+		getComponents: (nextState, callback) => {
+			require.ensure([], (require) => {
+				callback(null, require('containers/Login/Login').default);
+			}, 'login');
+		}
+	},
+	{
+		path: '*',
+		getComponents: (nextState, callback) => {
+			require.ensure([], (require) => {
+				callback(null, require('containers/NotFound/NotFound').default);
+			}, 'not-found');
+		}
+	}
+];
+
+export default routes;

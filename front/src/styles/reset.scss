@@ -1,0 +1,98 @@
+@charset "utf-8";
+
+html {
+    box-sizing: border-box;
+    overflow-y: scroll; /* All browsers without overlaying scrollbars */
+    color: #333;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Microsoft YaHei";
+    background-color: #f5f5f9 !important;
+    font-size: 14px !important;
+    line-height: 1.5;
+    color: #333333;
+}
+
+*,
+::before,
+::after {
+    background-repeat: no-repeat; /* Set `background-repeat: no-repeat` to all elements and pseudo elements */
+    box-sizing: inherit;
+}
+
+::before,
+::after {
+    text-decoration: inherit; /* Inherit text-decoration and vertical align to ::before and ::after pseudo elements */
+    vertical-align: inherit;
+}
+
+img {
+    border-style: none; /* Remove border when inside `a` element in IE 8/9/10 */
+    display: block
+}
+
+input {
+    border-radius: 0;
+}
+
+textarea {
+    overflow: auto; /* Internet Explorer 11+ */
+    resize: vertical; /* Specify textarea resizability */
+}
+
+/* Apply cursor pointer to button elements */
+button,
+[type="button"],
+[type="reset"],
+[type="submit"],
+[role="button"] {
+    cursor: pointer;
+    border-style: 0;
+    padding: 0;
+}
+
+/* Replace pointer cursor in disabled elements */
+[disabled] {
+    cursor: default;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit; /* Specify font inheritance of form elements */
+}
+
+input,
+textarea,
+[contenteditable] {
+    border: none;
+    background-color: transparent;
+    color: #333; /* 文本颜色 */
+    caret-color: #333; /* 光标颜色 */
+}
+
+input, textarea::-webkit-input-placeholder {
+    color: #a1a1a1;
+}
+
+a{
+    text-decoration: none;
+    color: #333;
+}
+
+blockquote, body, button, dd, dl, dt, fieldset, h1, h2, h3, h4, h5, h6, hr, input, lengend, li, ol, p, pre, td, textarea, th, ul {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    word-wrap: break-word;
+    word-break: break-all;
+    -webkit-appearance: none;
+}
+
+#page {
+    height: 100%;
+}

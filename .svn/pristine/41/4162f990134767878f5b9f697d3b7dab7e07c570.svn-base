@@ -1,0 +1,12 @@
+/**
+ * 任务请求接口 api
+ */
+
+const api = {
+  'TASK_GET':         '/task/task/task-list.json',
+  'TASK_ADD_POST':    '/task/task/task-add.json',
+  'TASK_END_POST':    '/task/task/task-over.json',
+  'TASK_UPDATE_POST': '/task/task/task-update.json',
+};
+
+export default api;

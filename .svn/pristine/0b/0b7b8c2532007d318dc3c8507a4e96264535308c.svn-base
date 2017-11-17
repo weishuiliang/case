@@ -1,0 +1,22 @@
+/**
+ * 组织结构 actions
+ */
+import * as types from '../contants/actionTypes/organize';
+
+//common
+export { request } from './_common/net';
+export { push, replace, go, goBack } from 'react-router-redux';
+
+export const delPerson = (id) => {
+	return {
+		type: types.ORGANIZE_PERSON_DEL,
+		id
+	}
+};
+
+export const delGroup = (id) => {
+	return {
+		type: types.ORGANIZE_DEL_GROUP,
+		id
+	}
+};

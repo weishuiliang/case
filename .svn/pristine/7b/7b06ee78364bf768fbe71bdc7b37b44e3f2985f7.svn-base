@@ -1,0 +1,82 @@
+/**
+ * 用户登录界面
+ */
+import React, { Component } from 'react';
+import { Form, Icon, Input, Button, message } from 'antd';
+import axios from 'axios';
+import Qs from 'qs';
+import * as types from '../../contants/actionTypes/login';
+import API from '../../contants/ApiRoot';
+//styles
+import './Styles.scss';
+
+const FormItem = Form.Item;
+
+class Login extends Component {
+
+	handleSubmit = (e) => {
+		e.preventDefault();
+		this.props.form.validateFields((err, values) => {
+			if (!err) {
+				console.log('Received values of form: ', values);
+				this.fetchLogin(values);
+			}
+		});
+	};
+
+	fetchLogin(values) {
+		axios({
+			method: 'post',
+			url: API[types.LOGIN_POST],
+			data: {
+				account: values.userName,
+				pwd: values.password
+			},
+			transformRequest: [function (data, headers) {
+				data = Qs.stringify(data);
+				return data;
+			}]
+		})
+		.then((response) => {
+			if (response.statusText === 'OK') {
+				if (response.data.status == 1) {
+					_global.history.push('/')
+				} else {
+					message.error(response.data.msg);
+				}
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+		});
+	}
+	
+	render() {
+		const { getFieldDecorator } = this.props.form;
+		return (
+			<Form onSubmit={this.handleSubmit} className="login-form _main-container">
+				<FormItem>
+					{getFieldDecorator('userName', {
+						rules: [{ required: true, message: '请输入用户名!' }],
+					})(
+						<Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="Username" />
+					)}
+				</FormItem>
+				<FormItem>
+					{getFieldDecorator('password', {
+						rules: [{ required: true, message: '请输入密码!' }],
+					})(
+						<Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password" placeholder="Password" />
+					)}
+				</FormItem>
+				<FormItem>
+					<Button type="primary" htmlType="submit" style={{width: '100%'}}>
+						登录
+					</Button>
+				</FormItem>
+			</Form>
+		)
+	}
+}
+
+export default  Form.create()(Login);

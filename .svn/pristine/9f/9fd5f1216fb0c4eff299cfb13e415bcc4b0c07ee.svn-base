@@ -1,0 +1,126 @@
+/**
+ * 部门Reducer
+ */
+import * as types from '../../contants/actionTypes/organize';
+
+const initState = {
+	groupList: {
+		// pagination: {
+		// 	current: 1,
+		// 	total: 0,
+		// 	showQuickJumper: true
+		// },
+		list: [],
+		loading: false
+	}
+};
+
+const editGroup = (array, data) => {
+	let groupArray = [...array];
+	for (let i = 0; i < groupArray.length; i++) {
+		if (groupArray[i].group_id == data.group_id) {
+			groupArray[i] = {...groupArray[i], ...data}
+			return groupArray;
+		} else if (groupArray[i].children.length > 0) {
+			groupArray[i].children = editGroup(groupArray[i].children, data)
+		}
+	}
+	return groupArray;
+};
+
+const formatList = (list) => {
+	let array = [...list];
+	for (let i = 0; i < array.length; i++) {
+		if (!!array[i].has_son) {
+			array[i].children = [];
+		}
+	}
+	return array;
+};
+
+const appendChild = (array, data) => {
+	if (data.length > 0) {
+		for (let i = 0; i <array.length; i++) {
+			if (array[i].group_id == data[0].pid) {
+				array[i].children = formatList(data);
+			} else if (!!array[i].children) {
+				appendChild(array[i].children, formatList(data))
+			}
+		}
+	}
+	return array
+};
+
+export const organizeGroup = (state = initState, action) => {
+	switch(action.type) {
+		case types.ORGANIZE_GROUP_LIST_GET + '_ON':
+		case types.ORGANIZE_CHILD_GROUP_POST + '_ON':
+			state = {
+				...state,
+				groupList: {
+					...state.groupList,
+					loading: true
+				}
+			};
+			return state;
+		case types.ORGANIZE_GROUP_LIST_GET + '_SUCCESS':
+			state = {
+				...state,
+				groupList: {
+					...state.groupList,
+					// pagination: {
+					// 	...state.groupList.pagination,
+					// 	current: parseInt(action.data.currentPage),
+					// 	total:parseInt( action.data.totalCount)
+					// },
+					list: formatList(action.data.list),
+					loading: false
+				}
+			};
+			return state;
+		case types.ORGANIZE_GROUP_LIST_GET + '_ERROR':
+		case types.ORGANIZE_CHILD_GROUP_POST + '_ERROR':
+			state = {
+				...state,
+				groupList: {
+					...state.groupList,
+					loading: false
+				}
+			};
+			return state;
+		// case types.ORGANIZE_GROUP_ADD_POST + '_SUCCESS':
+		// 	state = {
+		// 		...state,
+		// 		groupList: {
+		// 			...state.groupList,
+		// 			list: [action.data, ...state.groupList.list],
+		// 			pagination: {
+		// 				...state.groupList.pagination,
+		// 				total: state.groupList.pagination.total + 1
+		// 			}
+		// 		}
+		// 	};
+		// 	return state;
+		// case types.ORGANIZE_GROUP_EDIT_POST + '_SUCCESS':
+		// 	state = {
+		// 		...state,
+		// 		groupList: {
+		// 			...state.groupList,
+		// 			list: editGroup(state.groupList.list, action.data)
+		// 		}
+		// 	};
+		// 	return state;
+		case types.ORGANIZE_CHILD_GROUP_POST + '_SUCCESS':
+			state = {
+				groupList: {
+					...state.groupList,
+					list: appendChild(state.groupList.list, action.data),
+					loading: false
+				}
+			};
+			return state;
+		default:
+			return state;
+	}
+};
+

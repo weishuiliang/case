@@ -1,0 +1,43 @@
+<?php
+
+namespace manage\modules\home\services;
+
+use common\models\Role;
+use common\services\BaseService;
+
+/**
+ * Description of RoleService
+ *
+ * @author wsl
+ * @data 2017-11-9 15:23:20
+ */
+class RoleService extends BaseService
+{
+
+    /**
+     * @name 
+     * @author wsl
+     * @data 2017-11-9 15:23:20
+     */
+    public function getRoleList()
+    {
+        return Role::find()->asArray()->all();
+    }
+
+    public function roleAdd($post)
+    {
+        $model = new Role(); 
+        $model->position = $post['position'];
+        $model->group_id = $post['group_id'];
+        $model->create_time = time();
+        $is_save = $model->save();
+        if ($is_save) {
+            return $user_model->attributes;
+        }
+        return $is_save;
+        
+        
+    }
+    
+    
+}

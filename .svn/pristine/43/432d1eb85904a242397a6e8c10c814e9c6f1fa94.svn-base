@@ -1,0 +1,278 @@
+import React from 'react';
+import moment from 'moment';
+import axios from 'axios';
+import qs from 'qs';
+import {
+	Form, Input, DatePicker, Select, Button, Card, InputNumber, Radio, Icon, Tooltip, Modal, Spin
+} from 'antd';
+
+import API from '../../contants/ApiRoot';
+import { TASK_UPDATE_POST, TASK_DEL_POST } from '../../contants/actionTypes/task';
+import { openNotification } from '../../utils/utils';
+
+const FormItem = Form.Item;
+const { Option } = Select;
+const { RangePicker } = DatePicker;
+const { TextArea } = Input;
+
+// const openNotification = (type, message) => {
+// 	notification[type]({
+// 		message,
+// 	});
+// }
+
+class ModifyTaskForms extends React.PureComponent {
+	state = {
+		loading: false,
+	}
+	
+	handleSubmit = (e) => {
+		e.preventDefault();
+		const that = this;
+		const { handleCancel } = this.props;
+		const { updateTask } = this.props.actions;
+		this.props.form.validateFieldsAndScroll((err, values) => {
+			if (!err) {
+				that.setState({loading: true});
+				const {
+					task_name,
+					front_user_name,
+					front_time,
+					back_time,
+					back_user_name,
+					task_level,
+				} = values;
+
+				const front_start_time = moment(front_time[0]).format('X');
+				const front_end_time = moment(front_time[1]).format('X');
+				const back_start_time = moment(back_time[0]).format('X');
+				const back_end_time = moment(back_time[1]).format('X');
+
+				const formatedValue = {
+					// 传给服务器的时间格式为 Unix 时间戳
+					task_name,
+					front_user_name,
+					front_start_time,
+					front_end_time,
+					back_user_name,
+					back_start_time,
+					back_end_time,
+					task_level,
+					task_id: this.props.taskId,
+				};
+
+        axios.post(
+					API[TASK_UPDATE_POST],
+					qs.stringify(formatedValue)
+				).then(function(response) {
+					if (response.data.status.toString() === '1') {
+						const taskLevelDict = {
+							'10': '简单',
+							'20': '中等',
+							'30': '困难',
+						};
+						handleCancel(); // 关闭 modal
+						updateTask({
+							task_id: formatedValue.task_id,
+							task: {
+								// 处理下数据
+								...formatedValue,
+								task_level_name: taskLevelDict[task_level],
+								front_start_time: moment(front_time[0]).format('YYYY-MM-DD HH:mm:ss'),
+								front_end_time: moment(front_time[1]).format('YYYY-MM-DD HH:mm:ss'),
+								back_start_time: moment(back_time[0]).format('YYYY-MM-DD HH:mm:ss'),
+								back_end_time: moment(back_time[1]).format('YYYY-MM-DD HH:mm:ss')
+							},
+						});
+						// alert('更新成功');
+						openNotification('success', `更新 ${task_name} 成功`);
+					} else {
+						// alert('更新失败');
+						openNotification('error', `更新 ${task_name} 失败, ${response.data.msg}`);
+					}
+					that.setState({ loading: false });
+				});
+				console.log(formatedValue);
+
+			}
+		});
+  }
+  
+  handleDelete = (e) => {
+		e.preventDefault();
+		const that = this;
+		that.setState({ loading: true });
+
+		const { deleteTask } = this.props.actions;
+		const { handleCancel } = this.props;
+		const task_id = this.props.taskId;
+		const task_name = this.props.form.getFieldValue('task_name');
+    axios.post(
+			API[TASK_DEL_POST],
+			qs.stringify({task_id})
+		).then(function(response) {
+			if (response.data.status.toString() === '1') {
+				handleCancel(); // 关闭 modal
+				console.log('删除成功');
+				deleteTask(task_id);
+				openNotification('success', `删除 ${task_name} 成功`);
+			} else {
+				// alert('更新失败');
+				openNotification('error', `删除 ${task_name} 失败, ${response.data.msg}`);
+			}
+			that.setState({ loading: false });
+		})
+  }
+	render() {
+		const { getFieldDecorator, getFieldValue } = this.props.form;
+
+		const { initialValue } = this.props;
+		const formItemLayout = {
+			labelCol: {
+				xs: { span: 24 },
+				sm: { span: 7 },
+			},
+			wrapperCol: {
+				xs: { span: 24 },
+				sm: { span: 12 },
+				md: { span: 10 },
+			},
+		};
+
+		const submitFormLayout = {
+			wrapperCol: {
+				xs: { span: 24, offset: 0 },
+				sm: { span: 10, offset: 7 },
+			},
+		};
+
+		return (
+			<Modal
+				title="编辑任务详细信息"
+				visible={this.props.visible}
+				// onOk={this.props.handleOk}
+				onCancel={this.props.handleCancel}
+				footer={null}
+				width={800}
+			>
+				<Spin
+					spinning={this.state.loading}
+					tip="提交中..."
+				>
+					<Form
+						onSubmit={this.handleSubmit}
+						hideRequiredMark
+						style={{ marginTop: 8 }}
+					>
+						<FormItem
+							{...formItemLayout}
+							label="标题"
+						>
+							{getFieldDecorator('task_name', {
+								initialValue: initialValue.task_name || null,
+								rules: [{
+									required: true, message: '请输入标题',
+								}],
+							})(
+								<Input placeholder="给任务起个名字" />
+							)}
+						</FormItem>
+						<FormItem
+							{...formItemLayout}
+							label="预计前端工作时间"
+						>
+							{getFieldDecorator('front_time', {
+								initialValue: [
+									initialValue.front_start_time ?	moment(initialValue.front_start_time) : null,
+									initialValue.front_end_time ? moment(initialValue.front_end_time) : null
+								],
+								rules: [{
+									required: true, message: '请选择起止时间',
+								}],
+							})(
+								<RangePicker
+									style={{ width: '100%' }}
+									placeholder={['预计开始时间', '预计结束时间']}
+									format="YYYY-MM-DD"
+								/>
+							)}
+						</FormItem>
+						<FormItem
+							{...formItemLayout}
+							label="前端负责人"
+						>
+							{getFieldDecorator('front_user_name', {
+								initialValue: initialValue.front_user_name || null,
+								rules: [{
+									required: true, message: '请输入前端负责人',
+								}],
+							})(
+								<Input placeholder="请输入前端负责人姓名" />
+							)}
+						</FormItem>
+						<FormItem
+							{...formItemLayout}
+							label="预计后端工作时间"
+						>
+							{getFieldDecorator('back_time', {
+								initialValue: [
+									initialValue.back_start_time ? moment(initialValue.back_start_time) : null,
+									initialValue.back_end_time ? moment(initialValue.back_end_time) : null
+								],
+								rules: [{
+									required: true, message: '请选择起止时间',
+								}],
+							})(
+								<RangePicker
+									style={{ width: '100%' }}
+									placeholder={['预计开始时间', '预计结束时间']}
+									format="YYYY-MM-DD"
+								/>
+							)}
+						</FormItem>
+						<FormItem
+							{...formItemLayout}
+							label="后端负责人"
+						>
+							{getFieldDecorator('back_user_name', {
+								initialValue: initialValue.back_user_name || null,
+								rules: [{
+									required: true, message: '请输入后端负责人',
+								}],
+							})(
+								<Input placeholder="请输入后端负责人姓名" />
+							)}
+						</FormItem>
+						<FormItem
+							{...formItemLayout}
+							label="任务难度"
+							help="任务的难易程度，默认为 “中等” 难度"
+						>
+							{getFieldDecorator('task_level', {
+								initialValue: initialValue.task_level || '20',
+								rules: [{
+									required: true, message: '请选择任务难度',
+								}],
+							})(
+								<Radio.Group>
+									<Radio value="10">简单</Radio>
+									<Radio value="20">中等</Radio>
+									<Radio value="30">困难</Radio>
+								</Radio.Group>
+							)}
+						</FormItem>
+						<FormItem {...submitFormLayout} style={{ marginTop: 32, textAlign: 'right' }}>
+							<Button type="primary" htmlType="submit" >
+								提交
+							</Button>
+							<Button style={{ marginLeft: 8 }} onClick={this.props.handleCancel}>取消</Button>
+						</FormItem>
+					</Form>
+				</Spin>
+			</Modal>
+		);
+	}
+}
+
+const WrappedTaskForms = Form.create()(ModifyTaskForms);
+export default WrappedTaskForms;

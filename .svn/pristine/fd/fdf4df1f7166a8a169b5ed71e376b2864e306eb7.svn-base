@@ -1,0 +1,28 @@
+/**
+ * 组织结构 actions
+ */
+import * as types from '../contants/actionTypes/organize';
+
+/**
+ * 获取人员列表
+ * @param data
+ * @returns {{type, data: *}}
+ */
+export const getPersonList = (data) => {
+	return {
+		type: types.ORGANIZE_PERSON_LIST,
+		data
+	}
+};
+
+/**
+ * 获取部门列表
+ * @param data
+ * @returns {{type, data: *}}
+ */
+export const getGroupList = (data) => {
+	return {
+		type: types.ORGANIZE_GROUP_LIST,
+		data
+	}
+};

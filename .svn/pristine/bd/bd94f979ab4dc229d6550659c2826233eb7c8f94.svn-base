@@ -1,0 +1,45 @@
+import React, { Component } from 'react';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as actions from '../../actions/login';
+import Header from '../../components/Login/Header';
+import Main from '../../components/Login/Main';
+import Footer from '../../components/Login/Footer';
+//styles
+import '../../components/Login/Styles.scss';
+
+class App extends Component {
+    constructor(props) {
+		super(props);
+		this.handleLogin = this.handleLogin.bind(this);
+	}
+
+    handleLogin() {
+
+    }
+
+    render() {
+        const { loginReducer, actions } = this.props;
+
+        return (
+            <div className="container">
+				<Header />
+				<Main />
+				<Footer />
+			</div>
+        );
+    }
+}
+
+const mapStateToProps = (state, ownProps) => ({
+    loginReducer: state.loginReducer,
+});
+const mapDispatchToProps = (dispatch, ownProps) => ({
+    actions: bindActionCreators(actions, dispatch)
+});
+
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(App);

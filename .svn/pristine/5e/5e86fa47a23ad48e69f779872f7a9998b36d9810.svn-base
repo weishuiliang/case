@@ -1,0 +1,16 @@
+<?php
+
+use common\services\BaseService;
+namespace app\modules\home\services;
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class HomeService extends BaseService
+{
+
+
+
+}

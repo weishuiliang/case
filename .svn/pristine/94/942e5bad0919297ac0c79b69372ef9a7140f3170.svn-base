@@ -1,0 +1,25 @@
+<?php
+
+use common\services\BaseService;
+namespace manage\modules\home\services;
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class HomeService extends BaseService
+{
+    
+    
+    public function userAdd()
+    {
+        $user_model = new \common\models\User();
+        $user_model->account = 'wei';
+        $user_model->pwd = '123456';
+        $user_model->salt = '';
+        $user_model->save();
+    }
+
+
+}

@@ -1,0 +1,23 @@
+<?php
+
+namespace manage\modules\home\services;
+
+use common\models\Log;
+use common\services\BaseService;
+
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class LogService extends BaseService
+{
+    
+    public function getLogList()
+    {
+        $list = Log::find()->asArray()->all();
+        return $list;
+    }
+
+}

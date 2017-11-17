@@ -1,0 +1,206 @@
+import React from 'react';
+import moment from 'moment';
+import axios from 'axios';
+import {
+	Form, Input, DatePicker, Select, Button, Card, InputNumber, Radio, Icon, Tooltip, Modal
+} from 'antd';
+
+const FormItem = Form.Item;
+const { Option } = Select;
+const { RangePicker } = DatePicker;
+const { TextArea } = Input;
+
+class ModifyTaskForms extends React.PureComponent {  
+  
+	handleSubmit = (e) => {
+		e.preventDefault();
+		this.props.form.validateFieldsAndScroll((err, values) => {
+			if (!err) {
+				const {
+					task_name,
+					front_user_name,
+					front_time,
+					back_time,
+					back_user_name,
+					task_level,
+				} = values;
+
+				const front_start_time = moment(front_time[0]).format('X');
+				const front_end_time = moment(front_time[1]).format('X');
+				const back_start_time = moment(back_time[0]).format('X');
+				const back_end_time = moment(back_time[1]).format('X');
+
+				const formatedValue = {
+					task_name,
+					front_user_name,
+					front_start_time,
+					front_end_time,
+					back_user_name,
+					back_start_time,
+					back_end_time,
+					task_level,
+				};
+
+        axios.post('afadsfas',formatedValue);
+				console.log(formatedValue);
+			}
+		});
+  }
+  
+  handleDelete = (e) => {
+    e.preventDefault();
+    console.log('delete task');
+  }
+	render() {
+		const { submitting } = this.props;
+		const { getFieldDecorator, getFieldValue } = this.props.form;
+
+		const { initialValue } = this.props;
+		const formItemLayout = {
+			labelCol: {
+				xs: { span: 24 },
+				sm: { span: 7 },
+			},
+			wrapperCol: {
+				xs: { span: 24 },
+				sm: { span: 12 },
+				md: { span: 10 },
+			},
+		};
+
+		const submitFormLayout = {
+			wrapperCol: {
+				xs: { span: 24, offset: 0 },
+				sm: { span: 10, offset: 7 },
+			},
+		};
+
+		return (
+			<Modal
+				title="编辑任务详细信息"
+				visible={this.props.visible}
+				// onOk={this.props.handleOk}
+        onCancel={this.props.handleCancel}
+        footer={null}
+			>
+				<Form
+					onSubmit={this.handleSubmit}
+					hideRequiredMark
+					style={{ marginTop: 8 }}
+				>
+					<FormItem
+						{...formItemLayout}
+						label="标题"
+					>
+						{getFieldDecorator('task_name', {
+							initialValue: initialValue.task_name || null,
+							rules: [{
+								required: true, message: '请输入标题',
+							}],
+						})(
+							<Input placeholder="给任务起个名字" />
+						)}
+					</FormItem>
+					<FormItem
+						{...formItemLayout}
+						label="预计前端工作时间"
+					>
+						{getFieldDecorator('front_time', {
+							rules: [{
+								required: true, message: '请选择起止日期',
+							}],
+						})(
+							<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />
+						)}
+					</FormItem>
+					<FormItem
+						{...formItemLayout}
+						label="前端负责人"
+					>
+						{getFieldDecorator('front_user_name', {
+							initialValue: initialValue.front_user_name || null,
+							rules: [{
+								required: true, message: '请输入前端负责人',
+							}],
+						})(
+							<Input placeholder="请输入前端负责人姓名" />
+						)}
+					</FormItem>
+					<FormItem
+						{...formItemLayout}
+						label="预计后端工作时间"
+					>
+						{getFieldDecorator('back_time', {
+							rules: [{
+								required: true, message: '请选择起止日期',
+							}],
+						})(
+							<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />
+						)}
+					</FormItem>
+					<FormItem
+						{...formItemLayout}
+						label="后端负责人"
+					>
+						{getFieldDecorator('back_user_name', {
+							initialValue: initialValue.back_user_name || null,
+							rules: [{
+								required: true, message: '请输入后端负责人',
+							}],
+						})(
+							<Input placeholder="请输入后端负责人姓名" />
+						)}
+					</FormItem>
+					<FormItem
+						{...formItemLayout}
+						label="任务难度"
+						help="任务的难易程度，默认为 “一般” 难度"
+					>
+						{getFieldDecorator('task_level', {
+							initialValue: initialValue.task_level || '20',
+							rules: [{
+								required: true, message: '请选择任务难度',
+							}],
+						})(
+							<Radio.Group>
+								<Radio value="10">简单</Radio>
+								<Radio value="20">一般</Radio>
+								<Radio value="30">困难</Radio>
+							</Radio.Group>
+						)}
+					</FormItem>
+					<FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
+						<Button type="primary" htmlType="submit" loading={submitting}>
+							提交
+						</Button>
+						<Button style={{ marginLeft: 8 }} onClick={e => this.handleDelete(e)}>删除</Button>
+					</FormItem>
+				</Form>
+			</Modal>
+		);
+	}
+}
+
+ModifyTaskForms.defaultProps = {
+	initialValue: {
+		"task_id":"1",
+		"task_name":"完成2个列表",
+		"task_level":"10",
+		"task_level_name":"简单",
+		"front_user_id":"2",
+		"front_user_name":"蒋东",
+		"front_start_time":"",
+		"front_end_time":"",
+		"front_status":"0",
+		"back_user_id":"1",
+		"back_user_name":"尉水亮",
+		"back_start_time":"",
+		"back_end_time":"",
+		"back_status":"0",
+		"create_time":"2017-11-06 14:15:20",
+		"over_time":"2017-11-06 14:15:20"
+	}
+}
+
+const WrappedTaskForms = Form.create()(ModifyTaskForms);
+export default WrappedTaskForms;

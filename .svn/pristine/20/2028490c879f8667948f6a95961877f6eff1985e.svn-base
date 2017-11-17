@@ -1,0 +1,54 @@
+<?php
+
+namespace manage\modules\home\controllers;
+
+use common\extensions\Helper;
+use manage\modules\home\services\UserService;
+use Yii;
+use yii\web\Controller;
+
+/**
+ * Home controller for the `home` module
+ */
+class UserController extends Controller
+{
+
+    public function actionUserAdd()
+    {
+        $post = Yii::$app->request->post();
+        if (empty($post['account']) ) {
+            return json_encode(Helper::msg(0, '缺少账号名称'));
+        }
+        if (empty($post['name'])) {
+            return json_encode(Helper::msg(0, '缺少称呼名称'));
+        }
+        $res = UserService::service()->userAdd($post);
+        if ($res) {
+            return json_encode(Helper::msg(1, '添加成功', $res));
+        }
+        return json_encode(Helper::msg(0, '添加失败', $res));
+    }
+
+    public function actionUserList()
+    {
+        $list = UserService::service()->getUserList();
+        
+        return json_encode(Helper::msg(1, '', $list));
+    }
+    
+    public function actionUserUpdate()
+    {
+        $post = Yii::$app->request->post();
+        if (empty($post['user_id'])) {
+            return json_encode(Helper::msg(0, '缺少必要参数'));
+        }
+        $res = UserService::service()->userUpdate($post);
+        if ($res) {
+            return json_encode(Helper::msg(1, '操作成功', $res));
+        }
+        return json_encode(Helper::msg(0, '操作失败', $res));
+    }
+    
+    
+    
+}

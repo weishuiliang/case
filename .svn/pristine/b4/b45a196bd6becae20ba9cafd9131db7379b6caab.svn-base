@@ -1,0 +1,54 @@
+/**
+ * 用户设置POp
+ */
+import React, { Component } from 'react';
+import { Modal } from 'antd';
+import * as types from '../../contants/actionTypes/login';
+import { openNotification } from '../../utils/utils';
+
+class UserSettingPop extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			visible: false
+		};
+		this.handleChangePsw = this.handleChangePsw.bind(this);
+		this.handleLogout = this.handleLogout.bind(this);
+	}
+
+	handleChangePsw() {
+
+	}
+
+	handleLogout() {
+		const { actions } = this.props;
+		let data = {
+			type:types.LOGIN_OUT_POST,
+			method: 'post',
+			params: {}
+		};
+		let callback = {
+			onSuccess: (data) => {
+				// console.log(_global)
+				// _global.history.push('/');
+				location.href = '/';
+				openNotification('success', '退出成功');
+			},
+			onError: (err) => {
+				openNotification('error', err);
+			}
+		};
+		actions.request(data, callback, {middleNet: true});
+	}
+
+	render() {
+		return (
+			<div>
+				{/*<p className="pointer" onClick={this.handleChangePsw}>修改密码</p>*/}
+				<p className="pointer" onClick={this.handleLogout}>退出</p>
+			</div>
+		)
+	}
+}
+
+export default UserSettingPop;

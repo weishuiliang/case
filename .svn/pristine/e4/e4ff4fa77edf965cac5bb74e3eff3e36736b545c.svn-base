@@ -1,0 +1,78 @@
+<?php
+namespace manage\modules\home\services;
+
+use common\models\Group;
+use common\models\User;
+use common\services\BaseService;
+use Yii;
+use yii\data\Pagination;
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class GroupService extends BaseService
+{
+    
+    public function getGroupList()
+    {
+        $current_page = Yii::$app->request->get('page', 1);
+        $query = Group::find()->where(['is_del' =>0]);
+        $total_count = $query->count();
+        $page = new Pagination(['totalCount' => $total_count, 'pageSize' => 10]);
+        $list = $query
+                ->offset($page->offset)
+                ->limit($page->limit)
+                ->asArray()
+                ->all();
+        
+        return ['currentPage' => $current_page, 'totalPage' => $total_count, 'list' => $list];
+    }
+
+    public function groupAdd($post)
+    {
+        $group_model = new Group();
+        $group_model->pid = isset($post['pid']) ? $post['pid'] : 0;
+        $group_model->create_user = 1;
+        $group_model->group_name = $post['group_name'];
+        $group_model->create_time = time();
+        $is_save = $group_model->save();
+        if ($is_save) {
+            return $group_model->attributes;
+        }
+        return $is_save;
+    }
+    
+    public function groupEdit($post)
+    {
+        $model = Group::findOne(['group_id' =>$post['group_id']]);
+        $model->group_name = $post['group_name'];
+        $pid_model = Group::findOne(['group_id' =>$post['pid'], 'is_del' =>0]);
+        if (!$pid_model) {
+            return $msg = '上级部门不存在或已删除';
+        }
+        $model->pid = $post['pid'];
+        $is_save = $model->save();
+        if ($is_save) {
+            return $model->attributes;
+        }
+        return $is_save;
+    }
+    
+    public function groupDel($post)
+    {
+        $user_exist = User::find()->where(['group_id' =>$post['group_id']])->exists();
+        if ($user_exist) {
+            return $msg = '该部门下还有员工,不能删除';
+        }
+        $model = Group::findOne(['group_id' =>$post['group_id'], 'is_del' =>0]);
+        if (!$model) {
+            return $msg = '该部门不存在或已删除';
+        }
+        $model->is_del = 1;
+        return $model->save();
+    }
+    
+    
+}

@@ -1,0 +1,56 @@
+<?php
+namespace manage\modules\home\services;
+
+use common\models\Group;
+use common\models\User;
+use common\services\BaseService;
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class GroupService extends BaseService
+{
+    
+    public function getGroupList()
+    {
+        $list = Group::find()->asArray()->all();
+        return $list;
+    }
+
+    public function groupAdd($post)
+    {
+        $group_model = new Group();
+        $group_model->pid = isset($post['pid']) ? $post['pid'] : 0;
+        $group_model->create_user = 1;
+        $group_model->group_name = $post['group_name'];
+        $group_model->create_time = time();
+        $is_save = $group_model->save();
+        return $is_save;
+    }
+    
+    public function groupEdit($post)
+    {
+        $model = Group::findOne(['group_id' =>$post['group_id']]);
+        $model->group_name = $post['group_name'];
+        $is_save = $model->save();
+        return $is_save;
+    }
+    
+    public function groupDel($post)
+    {
+        $user_exist = User::find()->where(['group_id' =>$post['group_id']])->exists();
+        if ($user_exist) {
+            return $msg = '该部门下还有员工,不能删除';
+        }
+        $model = Group::findOne(['group_id' =>$post['group_id'], 'is_del' =>0]);
+        if (!$model) {
+            return $msg = '该部门不存在';
+        }
+        $model->is_del = 1;
+        return $model->save();
+    }
+    
+    
+}

@@ -1,0 +1,162 @@
+/**
+ * 组织结构 -- 人员列表
+ */
+import * as types from '../../contants/actionTypes/organize';
+
+const initState = {
+	personList: {
+		pagination: {
+			current: 1,
+			total: 0
+		},
+		list: [],
+		loading: false
+	},
+	groupList: {
+		pagination: {
+			current: 1,
+			total: 0
+		},
+		list: [],
+		loading: false
+	}
+};
+
+const editGroup = (array, data) => {
+	let groupArray = [...array];
+	for (let i = 0; i < groupArray.length; i++) {
+		if (groupArray[i].group_id == data.group_id) {
+			groupArray[i] = {...groupArray[i], ...data}
+		}
+	}
+	return groupArray;
+};
+
+const editPerson = (array, data) => {
+	let personArray = [...array];
+	for (let i = 0; i < personArray.length; i++) {
+		if (personArray[i].user_id == data.user_id) {
+			personArray[i] = {...personArray[i], ...data}
+		}
+	}
+	return personArray;
+};
+
+const organizeReducer = (state = initState, action) => {
+	switch(action.type) {
+		case types.ORGANIZE_PERSON_LIST_GET + '_TABLE_LOADING':
+			state = {
+				...state,
+				personList: {
+					...state.personList,
+					loading: true
+				}
+			};
+			return state;
+		case types.ORGANIZE_PERSON_LIST_GET + '_SUCCESS':
+			state = {
+				...state,
+				personList: {
+					...state.personList,
+					pagination: {
+						...state.personList.pagination,
+						current: parseInt(action.data.currentPage),
+						total:parseInt( action.data.totalCount)
+					},
+					list: [...action.data.list],
+					loading: false
+				}
+			};
+			return state;
+		case types.ORGANIZE_PERSON_LIST_GET + '_ERROR':
+			state = {
+				...state,
+				personList: {
+					...state.personList,
+					loading: false
+				}
+			};
+			return state;
+		case types.ORGANIZE_PERSON_ADD_POST + '_SUCCESS':
+			state = {
+				...state,
+				personList: {
+					...state.personList,
+					list: [action.data, ...state.personList.list],
+					pagination: {
+						...state.personList.pagination,
+						total: state.personList.pagination.total + 1
+					}
+				}
+			};
+			return state;
+		case types.ORGANIZE_PERSON_EDIT_POST + '_SUCCESS':
+			state = {
+				...state,
+				personList: {
+					...state.personList,
+					list: editPerson(state.personList.list, action.data)
+				}
+			};
+			return state;
+		case types.ORGANIZE_GROUP_LIST_GET + '_TABLE_LOADING':
+			state = {
+				...state,
+				groupList: {
+					...state.groupList,
+					loading: true
+				}
+			};
+			return state;
+		case types.ORGANIZE_GROUP_LIST_GET + '_SUCCESS':
+			state = {
+				...state,
+				groupList: {
+					...state.groupList,
+					pagination: {
+						...state.groupList.pagination,
+						current: parseInt(action.data.currentPage),
+						total:parseInt( action.data.totalCount)
+					},
+					list: [...action.data.list],
+					loading: false
+				}
+			};
+			return state;
+		case types.ORGANIZE_GROUP_LIST_GET + '_ERROR':
+			state = {
+				...state,
+				groupList: {
+					...state.groupList,
+					loading: false
+				}
+			};
+			return state;
+		case types.ORGANIZE_GROUP_ADD_POST + '_SUCCESS':
+			state = {
+				...state,
+				groupList: {
+					...state.groupList,
+					list: [action.data, ...state.groupList.list],
+					pagination: {
+						...state.groupList.pagination,
+						total: state.groupList.pagination.total + 1
+					}
+				}
+			};
+			return state;
+		case types.ORGANIZE_GROUP_EDIT_POST + '_SUCCESS':
+			state = {
+				...state,
+				groupList: {
+					...state.groupList,
+					list: editGroup(state.groupList.list, action.data)
+				}
+			};
+			return state;
+		default:
+			return state;
+	}
+};
+
+export default organizeReducer;

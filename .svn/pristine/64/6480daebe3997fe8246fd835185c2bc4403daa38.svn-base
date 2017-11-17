@@ -1,0 +1,9 @@
+/**
+ * 组织结构 API
+ */
+const api = {
+	'ORGANIZE_PERSON_LIST':           '/api/home/user/user-list.json',
+	'ORGANIZE_GROUP_LIST':            '/api/home/group/group-list.json',
+};
+
+export default api;

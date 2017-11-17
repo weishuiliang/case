@@ -1,0 +1,114 @@
+import React from 'react';
+import { Table } from 'antd';
+
+
+const dataSource = [
+  {
+      "task_id":"1",
+      "task_name":"完成2个列表",
+      "task_level":"10",
+      "task_level_name":"简单",
+      "front_user_id":"2",
+      "front_user_name":"蒋东",
+      "front_start_time":"",
+      "front_end_time":"",
+      "front_status":"0",
+      "back_user_id":"1",
+      "back_user_name":"尉水亮",
+      "back_start_time":"",
+      "back_end_time":"",
+      "back_status":"0",
+      "create_time":"2017-11-06 14:15:20",
+      "over_time":"2017-11-06 14:15:20"
+  },
+  {
+      "task_id":"3",
+      "task_name":"任务",
+      "task_level":"10",
+      "task_level_name":"简单",
+      "front_user_id":"3",
+      "front_user_name":"苟万彤",
+      "front_start_time":"",
+      "front_end_time":"",
+      "front_status":"0",
+      "back_user_id":"1",
+      "back_user_name":"尉水亮",
+      "back_start_time":"",
+      "back_end_time":"",
+      "back_status":"0",
+      "create_time":"2017-11-06 16:17:23",
+      "over_time":"2017-11-06 14:15:20"
+  },
+  {
+      "task_id":"2",
+      "task_name":"完成3个添加",
+      "task_level":"20",
+      "task_level_name":"中等",
+      "front_user_id":"2",
+      "front_user_name":"蒋东",
+      "front_start_time":"",
+      "front_end_time":"",
+      "front_status":"0",
+      "back_user_id":"1",
+      "back_user_name":"尉水亮",
+      "back_start_time":"",
+      "back_end_time":"",
+      "back_status":"0",
+      "create_time":"2017-11-06 14:15:20",
+      "over_time":"2017-11-06 14:15:20"
+  }
+];
+
+const columns = [
+  {
+    title: '任务名称',
+    dataIndex: 'task_name',
+  },
+  {
+    title: '难度',
+    dataIndex: 'task_level',
+  },
+  {
+    title: '前端',
+    dataIndex: 'front_user_name',
+  },
+  {
+    title: '后端',
+    dataIndex: 'back_user_name',
+  },
+  {
+    title: '预计完成时间（前端）',
+    dataIndex: 'front_user_name',
+    // sorter: true,
+    // render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
+  },
+  {
+    title: '预计完成时间（后端）',
+    dataIndex: 'back_user_name',
+    // sorter: true,
+    // render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
+  },
+  {
+    title: '实际完成时间',
+    dataIndex: 'over_time',
+    // sorter: true,
+    // render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
+  },
+  {
+    title: '操作',
+    render: () => (
+      <p>
+        <a href="">配置</a>
+        <a href="">标记为完成</a>
+      </p>
+    ),
+  },
+];
+
+class TaskTable extends React.Component {
+  render() {
+    return <Table columns={columns} dataSource={data} />
+  }
+}
+
+export default StandardTable;

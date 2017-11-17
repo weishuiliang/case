@@ -1,0 +1,23 @@
+<?php
+
+namespace manage\modules\home\controllers;
+
+use yii\web\Controller;
+
+/**
+ * Home controller for the `home` module
+ */
+class HomeController extends Controller
+{
+
+    public function actionUserAdd()
+    {
+        $res = \app\modules\home\services\HomeService::service()->userAdd();
+        var_dump($res);
+    }
+    
+    public function actionIndex()
+    {
+        echo "work";
+    }
+}

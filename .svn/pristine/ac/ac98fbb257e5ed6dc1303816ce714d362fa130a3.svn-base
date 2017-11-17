@@ -1,0 +1,162 @@
+/**
+ * 部门列表
+ */
+import React, {Component} from 'react';
+import { Table, Button, Popconfirm, Spin } from 'antd';
+import { openNotification } from '../../../utils/utils';
+import * as types from '../../../contants/actionTypes/organize';
+import GroupAddModal from './Add';
+
+class GroupList extends Component {
+	constructor(props){
+		super(props);
+		this.state = {
+			visible: false,
+			groupInfo: {},
+			type: 'new',
+			modalKey: 0,
+			pagination: {},
+			extending: false
+		};
+		this.handleEdit = this.handleEdit.bind(this);
+		this.handleDel = this.handleDel.bind(this);
+		this.handleTableChange = this.handleTableChange.bind(this);
+		this.handleShowModal = this.handleShowModal.bind(this);
+		this.handleHideModal = this.handleHideModal.bind(this);
+	}
+
+	componentDidMount() {
+		this.fetchData(1);
+	}
+
+	fetchData() {
+		const { actions } = this.props;
+		let data = {
+			type: types.ORGANIZE_GROUP_LIST_GET,
+			method: 'get',
+			params: {
+				is_page: 0
+			}
+		};
+		let callback = {
+			onSuccess: () => {},
+			onError: (err) => {openNotification('error', err);}
+		};
+		actions.request(data, callback, {middleNet: true});
+	}
+
+	handleEdit(value) {
+		this.setState({
+			groupInfo: {
+				groupName: value.group_name,
+				pid: value.pid,
+				group_id: value.group_id
+			},
+			visible: true,
+			type: 'edit',
+			modalKey: Date.parse(new Date())
+		})
+	}
+
+	handleDel(id) {
+		const { actions, listInfo } = this.props;
+		let data = {
+			type: types.ORGANIZE_GROUP_DEL_POST,
+			method: 'post',
+			params: {group_id: id}
+		};
+		let callback = {
+			onSuccess: (data) => {
+				// actions.delGroup(id);
+				openNotification('success', '删除成功');
+				this.fetchData()
+			},
+			onError: (err) => {openNotification('error', err);}
+		};
+		actions.request(data, callback, {progress: true, middleNet: true});
+	}
+
+	handleTableChange(pagination, filters, sorter) {
+
+		this.fetchData()
+	}
+
+	handleShowModal() {
+		this.setState({
+			groupInfo: null,
+			visible: true,
+			type: 'new',
+			modalKey: Date.parse(new Date())
+		});
+	}
+
+	handleHideModal() {
+		this.setState({visible: false});
+	}
+
+	getColumns() {
+		let columns = [
+			{
+				title: '部门',
+				dataIndex: 'group_name',
+				key: 'group_name',
+			},
+			{
+				title: '操作',
+				render: (text, record, index) => {
+					return (
+						<span>
+							<a href="#" onClick={(event) => {
+								event.preventDefault();
+								this.handleEdit(record)
+							}}>编辑</a>
+							<span className="ant-divider" />
+							<Popconfirm
+								title={`确认删除该部门吗?`}
+								onConfirm={() => this.handleDel(record.group_id)}
+								okText="确认"
+								cancelText="取消"
+							>
+								<a href="#">删除</a>
+							</Popconfirm>
+						</span>
+					)
+				}
+			}
+		];
+
+		return columns;
+	}
+
+	render() {
+		const {listInfo, actions} = this.props;
+		const columns = this.getColumns();
+
+		return (
+			<div>
+				<Button type="primary" className="g-m-b" onClick={this.handleShowModal}>
+					添加部门
+				</Button>
+				<Table
+					rowKey={"group_id"}
+					loading={listInfo.loading}
+					columns={columns}
+					dataSource={listInfo.list}
+					// pagination={listInfo.pagination}
+					onChange={this.handleTableChange}
+				/>
+				<GroupAddModal
+					key={this.state.modalKey}
+					actions={actions}
+					groupInfo={this.state.groupInfo || {}}
+					type={this.state.type}
+					visible={this.state.visible}
+					onShowModal={this.handleShowModal}
+					onHideModal={this.handleHideModal}
+				/>
+			</div>
+		)
+	}
+}
+
+export default GroupList;

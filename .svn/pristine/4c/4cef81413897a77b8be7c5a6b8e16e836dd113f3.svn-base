@@ -1,0 +1,37 @@
+<?php
+
+namespace manage\modules\home\controllers;
+
+use yii\web\Controller;
+
+/**
+ * Description of GroupController
+ *
+ * @author wsl
+ * @data 2017-11-6 11:46:49
+ */
+class GroupController extends Controller
+{
+      
+    public function actionGroupAdd()
+    {
+        $post = Yii::$app->request->post();
+        if (empty($post['account'])) {
+            return json_encode(Helper::msg(0, '缺少用户名称'));
+        }
+        $res = UserService::service()->userAdd($post);
+        if ($res) {
+            return json_encode(Helper::msg(1, '添加成功', $res));
+        }
+        return json_encode(Helper::msg(0, '添加失败', $res));
+        
+        
+    }
+    
+    public function actionGroupList()
+    {
+        
+    }
+    
+    
+}

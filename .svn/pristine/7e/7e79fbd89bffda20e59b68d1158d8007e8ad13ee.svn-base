@@ -1,0 +1,138 @@
+/**
+ * 新增部门
+ */
+import React, { Component } from 'react';
+import Qs from 'qs';
+import { Modal, Button, Form, Icon, Input, message, Select } from 'antd'
+import axios from 'axios';
+
+import * as types from '../../../contants/actionTypes/organize';
+import API from '../../../contants/ApiRoot';
+
+const FormItem = Form.Item;
+const Option = Select.Option;
+const formItemLayout = {
+	labelCol: {
+		xs: { span: 24 },
+		sm: { span: 6 },
+	},
+	wrapperCol: {
+		xs: { span: 24 },
+		sm: { span: 14 },
+	},
+};
+
+class AddGroup extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			loading: false
+		};
+		this.handleOk = this.handleOk.bind(this);
+		this.handleSubmit = this.handleSubmit.bind(this);
+	}
+
+	handleOk(values) {
+		const { actions, onHideModal } = this.props;
+		this.setState({ loading: true });
+		axios({
+			method: 'post',
+			url: API[types.ORGANIZE_GROUP_ADD_POST],
+			data: {
+				group_name: values.groupName,
+				pid: values.superGroupName || 0
+			},
+			transformRequest: [function (data, headers) {
+				data = Qs.stringify(data);
+				return data;
+			}]
+		})
+		.then((response) => {
+			if (response.statusText === 'OK') {
+				if (response.data.status == 1) {
+					this.setState({ loading: false });
+					onHideModal && onHideModal();
+				} else {
+					message.error(response.data.msg);
+					this.setState({ loading: false });
+				}
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+			this.setState({ loading: false });
+		});
+	}
+
+	handleSubmit(e) {
+		e.preventDefault();
+		this.props.form.validateFields((err, values) => {
+			if (!err) {
+				console.log('Received values of form: ', values);
+				this.handleOk(values);
+				this.props.form.setFieldsValue({groupName: '', superGroupName: ''})
+			}
+		});
+	}
+
+	render() {
+		const { loading } = this.state;
+		const { selectList, groupInfo, visible, onHideModal } = this.props;
+		const { getFieldDecorator } = this.props.form;
+
+		return (
+			<Modal
+				visible={visible}
+				title="新增部门"
+				onOk={this.handleOk}
+				onCancel={onHideModal}
+				footer={null}
+			>
+				<Form onSubmit={this.handleSubmit} className="login-form">
+					<FormItem
+						{...formItemLayout}
+						label="部门名称"
+					>
+						{getFieldDecorator('groupName', {
+							initialValue: `${groupInfo.groupName || ''}`,
+							rules: [{ required: true, message: '请输入部门名称' }],
+						})(
+							<Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="部门名称" />
+						)}
+					</FormItem>
+					<FormItem
+						{...formItemLayout}
+						label="上级部门"
+					>
+						{getFieldDecorator('superGroupName', {
+							initialValue: `${groupInfo.pid || ''}`,
+							rules: [{ message: '请选择上级部门' }],
+						})(
+							<Select
+								placeholder={'请选择上级部门'}
+							>
+								{
+									selectList.map((item, index) => {
+										return (
+											<Option key={item.group_id} value={item.group_id}>{item.group_name}</Option>
+										)
+									})
+								}
+							</Select>
+						)}
+					</FormItem>
+					<FormItem>
+						<div className="g-flex g-jc-end" style={{marginBottom: '-20px'}}>
+							<Button key="back" size="large" onClick={onHideModal}>取消</Button>,
+							<Button key="submit" type="primary" size="large" loading={loading} htmlType="submit">
+								{!!groupInfo.groupName ? '修改' : '添加'}
+							</Button>
+						</div>
+					</FormItem>
+				</Form>
+			</Modal>
+		);
+	}
+}
+
+export default Form.create()(AddGroup)

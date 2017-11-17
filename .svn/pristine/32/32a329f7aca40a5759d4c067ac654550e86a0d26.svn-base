@@ -1,0 +1,33 @@
+<?php
+namespace manage\modules\home\services;
+
+use common\models\Group;
+use common\services\BaseService;
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class GroupService extends BaseService
+{
+    
+    public function getGroupList()
+    {
+        $list = Group::find()->asArray()->all();
+        return $list;
+    }
+
+    public function groupAdd($post)
+    {
+        $group_model = new Group();
+        $group_model->pid = isset($post['pid']) ? $post['pid'] : 0;
+        $group_model->create_user = 1;
+        $group_model->group_name = $post['group_name'];
+        $group_model->create_time = time();
+        $is_save = $group_model->save();
+        return $is_save;
+    }
+    
+    
+}

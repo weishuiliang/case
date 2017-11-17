@@ -1,0 +1,136 @@
+/**
+ * 员工列表
+ */
+import React, {Component} from 'react';
+import axios from 'axios';
+import { Table, Button, message } from 'antd';
+import * as types from '../../../contants/actionTypes/organize';
+import API from '../../../contants/ApiRoot';
+import PersonAddModal from './Add'
+
+class PersonList extends Component {
+	constructor(props){
+		super(props);
+		this.state = {
+			visible: false,
+			personInfo: {}
+		};
+		this.handleEdit = this.handleEdit.bind(this);
+		this.handleDel = this.handleDel.bind(this);
+		this.handleShowModal = this.handleShowModal.bind(this);
+		this.handleHideModal = this.handleHideModal.bind(this);
+	}
+
+	componentDidMount() {
+		this.fetchData();
+	}
+
+	fetchData() {
+		const { actions } = this.props;
+		axios.get(API[types.ORGANIZE_PERSON_LIST_GET], {})
+		.then(function (response) {
+			if (response.statusText === 'OK') {
+				if (response.data.status == 1) {
+					actions.getPersonList(response.data.data);
+				} else {
+					console.log(response.data.msg);
+					message.error(response.data.msg);
+				}
+			}
+		})
+		.catch(function (error) {
+			console.log(error);
+		});
+	}
+
+	handleEdit(value) {
+		this.setState({
+			personInfo: {
+				account: value.account,
+				name: value.name,
+				groupID: value.group_id
+			},
+			visible: true
+		})
+	}
+
+	handleDel(id) {
+
+	}
+
+	handleShowModal() {
+		this.setState({
+			personInfo: null,
+			visible: true
+		});
+	}
+
+	handleHideModal() {
+		this.setState({visible: false});
+	}
+
+	getColumns() {
+		let columns = [
+			{
+				title: '工号',
+				dataIndex: 'user_sn',
+				key: 'user_sn',
+			},
+			{
+				title: '姓名',
+				dataIndex: 'name',
+				key: 'name'
+			},
+			{
+				title: '手机号',
+				dataIndex: 'mobile',
+				key: 'mobile',
+			},
+			{
+				title: '部门',
+				dataIndex: 'group_name',
+				key: 'group_name',
+			},
+			{
+				title: '角色',
+				dataIndex: 'position',
+				key: 'position',
+			},
+			{
+				title: '操作',
+				render: (text, record, index) => {
+					return (
+						<span>
+							<span className="option-btn" onClick={() => this.handleEdit(record)}>编辑</span>
+							<span className="ant-divider" />
+							<span className="option-btn" onClick={() => this.handleDel(record.group_id)}>删除</span>
+						</span>
+					)
+				}
+			}
+		];
+		return columns;
+	}
+
+	render() {
+		const {data} = this.props;
+		const columns = this.getColumns();
+
+		return (
+			<div>
+				<Button type="primary" onClick={this.handleShowModal}>
+					添加人员
+				</Button>
+				<Table rowKey={"user_id"} columns={columns} dataSource={data}/>
+				<PersonAddModal
+					groupInfo={this.state.personInfo || {}}
+					visible={this.state.visible}
+					onShowModal={this.handleShowModal}
+					onHideModal={this.handleHideModal}
+				/>
+			</div>
+		);
+	}
+}
+
+export default PersonList;

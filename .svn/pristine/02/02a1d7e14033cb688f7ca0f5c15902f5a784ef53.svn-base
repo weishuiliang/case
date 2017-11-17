@@ -1,0 +1,24 @@
+<?php
+
+namespace manage\modules\task\controllers;
+
+use common\extensions\Helper;
+use manage\modules\task\services\TaskService;
+use yii\web\Controller;
+
+/**
+ * Default controller for the `task` module
+ */
+class TaskController extends Controller
+{
+    /**
+     * Renders the index view for the module
+     * @return string
+     */
+    public function actionTaskList()
+    {
+        $list = TaskService::service()->getTaskList();
+        
+        return json_encode(Helper::msg(1, '', $list));
+    }
+}

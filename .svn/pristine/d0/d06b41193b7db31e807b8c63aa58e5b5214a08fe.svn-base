@@ -1,0 +1,28 @@
+import React, { Component } from 'react';
+import { Router, Route, hashHistory, IndexRedirect } from 'react-router';
+//components
+import Layout from '../containers/Layout/Layout';
+import Project from '../containers/Project/Project';
+import ProjectAdd from '../containers/Project/ProjectAdd';
+import ProjectList from '../containers/Project/ProjectList';
+import NotFound from 'containers/NotFound/NotFound';
+
+class OARoute extends Component {
+
+	render() {
+		return (
+			<Router history={this.props.history}>
+				<Route path={'/'} components={Layout}>
+					<IndexRedirect to="/project/list" />
+					<Route path={'project'} component={Project}>
+						<Route path={'list'} component={ProjectList} />
+						<Route path={'add'} component={ProjectAdd} />
+					</Route>
+				</Route>
+				<Route path={'*'} component={NotFound}/>
+			</Router>
+		)
+	}
+}
+
+export default OARoute;

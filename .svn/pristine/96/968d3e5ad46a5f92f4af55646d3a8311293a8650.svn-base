@@ -1,0 +1,35 @@
+import React from 'react';
+
+import TaskTableList from './TaskTableList';
+import ModifyTaskModal from './ModifyTaskModal';
+
+class Task extends React.Component {
+
+	state ={
+    modalVisible: false,
+    confirmLoading: false,
+	}
+
+	handleOpenModal = () => {
+		this.setState({
+			modalVisible: true,
+		})
+	}
+
+	handleCloseModal = () => {
+		this.setState({
+			modalVisible: false,
+		})
+	}
+
+	render() {
+		return (
+			<div>
+				<TaskTableList handleCloseModal={this.handleOpenModal} />
+				<ModifyTaskModal handleCancel={this.handleCloseModal} visible={this.state.modalVisible} />
+			</div>
+		)
+	}
+}
+
+export default Task;

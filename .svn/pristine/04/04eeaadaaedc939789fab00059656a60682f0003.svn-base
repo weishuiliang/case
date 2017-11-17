@@ -1,0 +1,105 @@
+/**
+ * 修改用户信息
+ */
+import React, { Component } from 'react';
+import { Modal, Button, Form, Icon, Input } from 'antd';
+import { openNotification, getCookie } from '../../utils/utils';
+
+import * as types from '../../contants/actionTypes/login';
+
+const FormItem = Form.Item;
+const formItemLayout = {
+	labelCol: {
+		xs: { span: 24 },
+		sm: { span: 6 },
+	},
+	wrapperCol: {
+		xs: { span: 24 },
+		sm: { span: 14 },
+	},
+};
+
+class EditUserInfo extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			loading: false
+		};
+		this.handleOk = this.handleOk.bind(this);
+		this.handleSubmit = this.handleSubmit.bind(this);
+	}
+
+	handleOk(values) {
+		const { actions, onHideModal } = this.props;
+		this.setState({ loading: true });
+		let data = {
+			type: types.LOGIN_EDIT_PSW,
+			method: 'post',
+			params: {
+				user_id: getCookie('user_id'),
+				pwd: values.pwd
+			}
+		};
+		let callback = {
+			onSuccess: (data) => {
+				this.setState({ loading: false });
+				openNotification('success', '修改成功');
+				onHideModal && onHideModal();
+			},
+			onError: (err) => {
+				openNotification('error', err);
+				this.setState({ loading: false });
+			}
+		};
+		actions.request(data, callback, {middleNet: true});
+	}
+
+	handleSubmit(e) {
+		e.preventDefault();
+		this.props.form.validateFields((err, values) => {
+			if (!err) {
+				console.log('Received values of form: ', values);
+				this.handleOk(values);
+			}
+		});
+	}
+
+	render() {
+		const { visible, onHideModal } = this.props;
+		const { getFieldDecorator } = this.props.form;
+		const { loading } = this.state;
+
+		return (
+			<Modal
+				visible={visible}
+				title="修改密码"
+				onOk={this.handleOk}
+				onCancel={onHideModal}
+				footer={null}
+			>
+				<Form onSubmit={this.handleSubmit} className="login-form">
+					<FormItem
+						{...formItemLayout}
+						label="新密码"
+					>
+						{getFieldDecorator('pwd', {
+							rules: [{ required: true, message: '请输入密码' }],
+						})(
+							<Input placeholder="请输入密码" />
+						)}
+					</FormItem>
+					<FormItem>
+						<div className="g-flex g-jc-end" style={{marginBottom: '-20px'}}>
+							<Button key="back" size="large" onClick={onHideModal}>取消</Button>,
+							<Button key="submit" type="primary" size="large" loading={loading} htmlType="submit">
+								修改
+							</Button>
+						</div>
+					</FormItem>
+				</Form>
+			</Modal>
+		)
+	}
+}
+
+export default  Form.create()(EditUserInfo);

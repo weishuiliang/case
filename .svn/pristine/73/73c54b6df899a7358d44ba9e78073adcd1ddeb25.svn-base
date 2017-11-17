@@ -1,0 +1,2 @@
+export const TASK_GET = 'TASK_GET';
+export const TASK_ADD_POST = 'TASK_ADD_POST';

@@ -1,0 +1,130 @@
+<?php
+namespace manage\modules\home\services;
+
+use common\extensions\Helper;
+use common\models\Group;
+use common\models\User;
+use common\services\BaseService;
+use Yii;
+use yii\data\Pagination;
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class GroupService extends BaseService
+{
+    
+    public function getGroupList($is_page = 1)
+    {
+        $current_page = Yii::$app->request->get('page', 1);
+        $query = Group::find()->where(['is_del' =>0, 'pid' =>0]);
+        if (!$is_page) {
+            $tmp_list = $query->orderBy('group_id desc')->asArray()->all();
+            foreach ($tmp_list as &$val) {
+                $val['has_son'] = Group::find()->where(['pid' =>$val['group_id'], 'is_del' =>0])->exists();
+            }
+            return ['list' =>$tmp_list];
+        }
+        $total_count = $query->count();
+        $page = new Pagination(['totalCount' => $total_count, 'pageSize' => 10]);
+        $list = $query
+                ->offset($page->offset)
+                ->limit($page->limit)
+                ->orderBy('group_id desc')
+                ->asArray()
+                ->all();
+        
+        return ['currentPage' => $current_page, 'totalCount' => $total_count, 'list' => $list];
+    }
+    /**
+     * @name 获取所有部门
+     * @return array
+     */
+    public function getGroupAll()
+    {
+        return Group::find()->where(['is_del' =>0])->asArray()->all();
+    }
+    
+    public function getSonGroupList($group_id)
+    {
+        $list = Group::find()->where(['pid' =>$group_id, 'is_del' =>0])->asArray()->all();
+        foreach ($list as &$val) {
+            $val['has_son'] = Group::find()->where(['pid' =>$val['group_id'], 'is_del' =>0])->exists();
+        }
+        return $list;
+    }
+    
+    public function groupAdd($post)
+    {
+        $exist = $this->groupNameCheck($post['group_name']);
+        if ($exist) {
+            return Helper::msg(0, '该部门名称已经被人取了');
+        }
+        $group_model = new Group();
+        $group_model->pid = isset($post['pid']) ? $post['pid'] : 0;
+        $group_model->create_user = 1;
+        $group_model->group_name = $post['group_name'];
+        $group_model->create_time = time();
+        $is_save = $group_model->save();
+        if ($is_save) {
+            return Helper::msg(1, '添加成功', $group_model->attributes);
+        }
+        return Helper::msg(0, '添加失败');
+    }
+    
+    public function groupEdit($post)
+    {
+        $model = Group::findOne(['group_id' =>$post['group_id']]);
+        if (!$model) {
+            return Helper::msg(0, '不存在该部门');
+        }
+        $model->group_name = $post['group_name'];
+        $pid_model = Group::findOne(['group_id' =>$post['pid'], 'is_del' =>0]);
+        if (!$pid_model) {
+            return Helper::msg(0, '上级部门不存在或已删除');
+        }
+        $exist = $this->groupNameCheck($post['group_name'], $post['group_id']);
+        if ($exist) {
+            return Helper::msg(0, '该部门名称已经被人取了');
+        }
+        $model->pid = $post['pid'];
+        $is_save = $model->save();
+        $has_son = Group::find()->where(['pid' =>$post['group_id']])->exists();
+        if ($is_save) {
+            return Helper::msg(1, '编辑成功', array_merge($model->attributes, ['has_son' =>$has_son]));
+        }
+        return Helper::msg(0, '编辑失败');
+    }
+    
+    private function groupNameCheck($group_name, $group_id=0)
+    {
+        $where = !empty($group_id) ? 'group_id != ' . $group_id : '';
+        return Group::find()->where(['group_name' =>$group_name])->andWhere($where)->exists();
+    }
+    
+    public function groupDel($post)
+    {
+        $model = Group::findOne(['group_id' =>$post['group_id'], 'is_del' =>0]);
+        if (!$model) {
+            return Helper::msg(0, '该部门不存在或已删除');
+        }
+        $son_model = Group::findOne(['pid' =>$post['group_id'], 'is_del' =>0]);
+        if ($son_model) {
+            return Helper::msg(0, '该部门存在子部门，不能删除');
+        }
+        $user_exist = User::find()->where(['group_id' =>$post['group_id'], 'is_del' =>0])->exists();
+        if ($user_exist) {
+            return Helper::msg(0, '该部门下还有员工,不能删除');
+        }
+        $model->is_del = 1;
+        $is_del = $model->save();
+        if ($is_del) {
+            return Helper::msg(1, '删除成功');
+        }
+        return Helper::msg(0, '删除失败');
+    }
+    
+    
+}

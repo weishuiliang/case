@@ -1,0 +1,58 @@
+/**
+ * 修改用户信息
+ */
+import React, { Component } from 'react';
+import { Modal, Button, Form, Icon, Input, Select } from 'antd';
+
+const FormItem = Form.Item;
+const formItemLayout = {
+	labelCol: {
+		xs: { span: 24 },
+		sm: { span: 6 },
+	},
+	wrapperCol: {
+		xs: { span: 24 },
+		sm: { span: 14 },
+	},
+};
+
+class EditUserInfo extends Component {
+
+	render() {
+		const { visible, onHideModal } = this.props;
+		const { getFieldDecorator } = this.props.form;
+		return (
+			<Modal
+				visible={visible}
+				title="用户信息"
+				onOk={this.handleOk}
+				onCancel={onHideModal}
+				footer={null}
+			>
+				<Form onSubmit={this.handleSubmit} className="login-form">
+					<FormItem
+						{...formItemLayout}
+						label="新密码"
+					>
+						{getFieldDecorator('psw', {
+							initialValue: `${groupInfo.psw || ''}`,
+							rules: [{ required: true, message: '请输入密码' }],
+						})(
+							<Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="请输入密码" />
+						)}
+					</FormItem>
+					<FormItem>
+						<div className="g-flex g-jc-end" style={{marginBottom: '-20px'}}>
+							<Button key="back" size="large" onClick={onHideModal}>取消</Button>,
+							<Button key="submit" type="primary" size="large" loading={loading} htmlType="submit">
+								修改
+							</Button>
+						</div>
+					</FormItem>
+				</Form>
+			</Modal>
+		)
+	}
+}
+
+export default  Form.create()(EditUserInfo);

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>项目进度管理系统</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- font icon -->
+        <link rel="stylesheet" type="text/css" href="//at.alicdn.com/t/font_432057_zjrrp8rdgl9xusor.css" >
+        <script type="text/javascript" src="//at.alicdn.com/t/font_385952_18lc02blzte7y14i.js"></script>
+    </head>
+    <body>
+        <div id="page"></div>
+        <noscript>
+            <!--页面不支持JavaScript是会执行<noscript/>-->
+            <p>此页面不支持（禁用）JavaScript，请更换浏览器或启用对脚本的支持。</p>
+        </noscript>
+    </body>
+</html>

@@ -1,0 +1,17 @@
+<?php
+namespace manage\modules\home\services;
+
+use common\services\BaseService;
+
+/**
+ * Description of TaskService
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:19
+ */
+class TaskService extends BaseService
+{
+
+    
+
+}

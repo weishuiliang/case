@@ -1,0 +1,10 @@
+/**
+ * 登录请求接口 api
+ */
+
+const api = {
+    'LOGIN_POST'               : '/home/login/login.json',
+    'LOGIN_OUT_POST'           : '/home/login/login-out.json'
+};
+
+export default api;

@@ -1,0 +1,77 @@
+/**
+ * 员工列表
+ */
+import React, {Component} from 'react';
+import axios from 'axios';
+import { Table } from 'antd';
+import * as types from '../../../contants/actionTypes/organize';
+import API from '../../../contants/ApiRoot';
+
+const columns = [
+	{
+		title: '工号',
+		dataIndex: 'user_sn',
+		key: 'user_sn',
+	},
+	{
+		title: '姓名',
+		dataIndex: 'name',
+		key: 'name'
+	},
+	{
+		title: '手机号',
+		dataIndex: 'mobile',
+		key: 'mobile',
+	},
+	{
+		title: '部门',
+		dataIndex: 'group_name',
+		key: 'group_name',
+	},
+	{
+		title: '角色',
+		dataIndex: 'position',
+		key: 'position',
+	},
+	{
+		title: '操作',
+		render: () => {
+			return (
+				<div>操作</div>
+			)
+		}
+	}
+];
+
+class PersonList extends Component {
+
+	componentDidMount() {
+		this.fetchData();
+	}
+
+	fetchData() {
+		const { actions } = this.props;
+		axios.get(API[types.ORGANIZE_PERSON_LIST], {})
+		.then(function (response) {
+			if (response.statusText === 'OK') {
+				if (response.data.status == 1) {
+					actions.getPersonList(response.data.data);
+				} else {
+					console.log(response.data.msg);
+				}
+			}
+		})
+		.catch(function (error) {
+			console.log(error);
+		});
+	}
+
+	render() {
+		const {data} = this.props;
+		return (
+			<Table rowKey={"user_id"} columns={columns} dataSource={data}/>
+		)
+	}
+}
+
+export default PersonList;

@@ -1,0 +1,100 @@
+import React, {Component} from 'react';
+import {Layout, Menu, Icon} from 'antd';
+import routeConfig from '../../routers/routeConfig';
+
+const {Sider} = Layout;
+const SubMenu = Menu.SubMenu;
+
+class MenuList extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			openKey: '',
+			selectedKey: '',
+		};
+		this.handleOnItemClick = this.handleOnItemClick.bind(this);
+		this.setMenuOpen = this.setMenuOpen.bind(this);
+		this.openMenu = this.openMenu.bind(this);
+	}
+
+	componentDidMount() {
+		this.setMenuOpen(this.props);
+	}
+	componentWillReceiveProps(nextProps) {
+		console.log(nextProps);
+		this.setMenuOpen(nextProps)
+	}
+	setMenuOpen(props) {
+		const {path} = props;
+		this.setState({
+			openKey: path.substr(0, path.lastIndexOf('/')),
+			selectedKey: path
+		});
+	};
+
+	handleOnItemClick(e) {
+		const {router} = this.props;
+		this.setState({
+			selectedKey: e.key
+		});
+		router.push(e.key)
+	}
+
+	openMenu(v) {
+		console.log(v);
+		this.setState({
+			openKey: v[v.length - 1],
+			firstHide: false,
+		})
+	};
+
+	/**
+	 * 获取Menu配置数组
+	 */
+	getMenuArray() {
+		for (let i = 0; i < routeConfig.length; i++) {
+			if (routeConfig[i].menuRoute) {
+				let menuList = routeConfig[i].children || [];
+				return menuList.filter((item) => {
+					return !item.indexRedirect        // 过滤IndexRedirect
+				})
+			}
+		}
+	}
+
+	renderMenu(menuArray=[]) {
+		let menu = [];
+		for (let i = 0; i < menuArray.length; i++) {
+			if (!menuArray[i]['children'] || menuArray[i]['children'].length <=0 ) {
+				menu[i] = (
+					<Menu.Item key={menuArray[i]['realPath']}>{menuArray[i]['menuName']}</Menu.Item>
+				)
+			} else {
+				menu[i] = (
+					<SubMenu key={menuArray[i]['realPath']} title={<span><Icon type="mail" /><span>{menuArray[i]['menuName']}</span></span>}>
+						{this.renderMenu(menuArray[i]['children'])}
+					</SubMenu>
+				)
+			}
+		}
+		return menu;
+	}
+
+	render() {
+
+		return (
+			<Menu
+				theme="dark"
+				selectedKeys={[this.state.selectedKey]}           //打开二级菜单
+				openKeys={[this.state.openKey]}                   //选中的Item
+				mode="inline"
+				onClick={this.handleOnItemClick}
+				onOpenChange={this.openMenu}
+			>
+				{this.renderMenu(this.getMenuArray())}
+			</Menu>
+		);
+	}
+}
+
+export default MenuList;

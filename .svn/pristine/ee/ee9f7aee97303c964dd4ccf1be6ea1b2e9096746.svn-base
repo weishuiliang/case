@@ -1,0 +1,56 @@
+import React, { Component } from 'react';
+import { Router, Route, hashHistory, IndexRedirect } from 'react-router';
+import { getCookie } from '../utils/utils';
+//layout
+import Layout from '../containers/Layout/Layout';
+// project
+import Project from '../containers/Project/Project';
+import ProjectAdd from '../containers/Project/ProjectAdd';
+import ProjectList from '../containers/Project/ProjectList';
+// task
+import Task from '../containers/Task/Task';
+import AddTaskForm from '../containers/Task/AddTaskForm';
+// organize
+import OrganizePersonList from '../containers/Organize/OrganizePersonList';
+import OrganizeGroupList from '../containers/Organize/OrganizeGroup';
+// login
+import Login from 'containers/Login/Login';
+// not found
+import NotFound from 'containers/NotFound/NotFound';
+
+class OARoute extends Component {
+	// login 认证
+	requireAuth = (nextState, replace, callback) => {
+		if (!getCookie('user_id')) {
+			replace({ pathname: '/login' })
+		} else {
+			callback();
+		}
+	};
+
+	render() {
+		return (
+			<Router history={this.props.history}>
+				<Route path={'/'} components={Layout} onEnter={this.requireAuth} >
+					<IndexRedirect to="/task/list" />
+					{/*<Route path={'project'} component={Project}>*/}
+						{/*<Route path={'list'} component={ProjectList} />*/}
+						{/*<Route path={'add'} component={ProjectAdd} />*/}
+					{/*</Route>*/}
+					<Route path={'task'} >
+						<Route path={'list'} component={Task} />
+						<Route path={'add'} component={AddTaskForm} />
+					</Route>
+					<Route path={'organize'}>
+						<Route path={'person-list'} component={OrganizePersonList}/>
+						<Route path={'group-list'} component={OrganizeGroupList}/>
+					</Route>
+				</Route>
+				<Route path={'/login'} component={Login} />
+				<Route path={'*'} component={NotFound}/>
+			</Router>
+		)
+	}
+}
+
+export default OARoute;

@@ -1,0 +1,90 @@
+/**
+ * 组织结构 actions
+ */
+import * as types from '../contants/actionTypes/organize';
+
+/**
+ * 获取人员列表
+ * @param data
+ * @returns {{type, data: *}}
+ */
+export const getPersonList = (data) => {
+	return {
+		type: types.ORGANIZE_PERSON_LIST_GET,
+		data
+	}
+};
+
+/**
+ * 添加人员
+ * @param data
+ * @returns {{type, data: *}}
+ */
+export const addPerson = (data) => {
+	return {
+		type: types.ORGANIZE_PERSON_ADD_POST,
+		data
+	}
+};
+
+/**
+ * 编辑人员
+ * @param data
+ * @returns {{type, data: *}}
+ */
+export const editPerson = (data) => {
+	return {
+		type: types.ORGANIZE_PERSON_EDIT_POST,
+		data
+	}
+};
+
+export const delPerson = (id) => {
+	return {
+		type: types.ORGANIZE_PERSON_DEL_POST,
+		id
+	}
+};
+
+/**
+ * 获取部门列表
+ * @param data
+ * @returns {{type, data: *}}
+ */
+export const getGroupList = (data) => {
+	return {
+		type: types.ORGANIZE_GROUP_LIST_GET,
+		data
+	}
+};
+
+/**
+ * 添加部门
+ * @param data
+ * @returns {{type, data: *}}
+ */
+export const addGroup = (data) => {
+	return {
+		type: types.ORGANIZE_GROUP_ADD_POST,
+		data
+	}
+};
+
+/**
+ * 编辑部门
+ * @param data
+ * @returns {{type, data: *}}
+ */
+export const editGroup = (data) => {
+	return {
+		type: types.ORGANIZE_GROUP_EDIT_POST,
+		data
+	}
+};
+
+export const delGroup = (id) => {
+	return {
+		type: types.ORGANIZE_GROUP_DEL_POST,
+		id
+	}
+};

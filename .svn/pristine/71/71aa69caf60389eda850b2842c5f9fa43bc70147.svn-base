@@ -1,0 +1,153 @@
+/**
+ * 职位列表
+ */
+import React, {Component} from 'react';
+import { Table, Button, Popconfirm } from 'antd';
+import { openNotification } from '../../../utils/utils';
+import * as types from '../../../contants/actionTypes/organize';
+import PositionAddModal from './Add'
+
+class PersonList extends Component {
+	constructor(props){
+		super(props);
+		this.state = {
+			visible: false,
+			positionInfo: {},
+			type: 'new',
+			modalKey: 0
+		};
+		this.handleEdit = this.handleEdit.bind(this);
+		this.handleDel = this.handleDel.bind(this);
+		this.handleShowModal = this.handleShowModal.bind(this);
+		this.handleHideModal = this.handleHideModal.bind(this);
+	}
+
+	componentDidMount() {
+		this.fetchData();
+	}
+
+	fetchData() {
+		const { actions } = this.props;
+		let data = {
+			type: types.ORGANIZE_POSITION_LIST_GET,
+			method: 'get',
+			params: {}
+		};
+		let callback = {
+			onSuccess: () => {},
+			onError: (err) => {openNotification('error', err);}
+		};
+		actions.request(data, callback, {tableLoading: true, middleNet: true});
+	}
+
+	handleEdit(value) {
+		this.setState({
+			positionInfo: {
+				position: value.position,
+				group_id: value.group_id,
+			},
+			visible: true,
+			type: 'edit',
+			modalKey: Date.parse(new Date())
+		})
+	}
+
+	handleDel(id) {
+		const { actions, listInfo } = this.props;
+		let data = {
+			type: types.ORGANIZE_PERSON_DEL_POST,
+			method: 'post',
+			params: {user_id: id}
+		};
+		let callback = {
+			onSuccess: (data) => {
+				// actions.delPerson(id);
+				openNotification('success', '删除成功');
+				this.fetchData();
+			},
+			onError: (err) => {openNotification('error', err);}
+		};
+		actions.request(data, callback, {progress: true, middleNet: true});
+	}
+
+	handleTableChange(pagination, filters, sorter) {
+
+		this.fetchData(pagination.current)
+	}
+
+	handleShowModal() {
+		this.setState({
+			positionInfo: null,
+			visible: true,
+			type: 'new',
+			modalKey: Date.parse(new Date())
+		});
+	}
+
+	handleHideModal() {
+		this.setState({visible: false});
+	}
+
+	getColumns() {
+		let columns = [
+			{
+				title: '职位',
+				dataIndex: 'position',
+				key: 'position',
+			},
+			{
+				title: '操作',
+				render: (text, record, index) => {
+					return (
+						<span>
+							<a href="#" onClick={(event) => {
+								event.preventDefault();
+								this.handleEdit(record)
+							}}>编辑</a>
+							<span className="ant-divider" />
+							<Popconfirm
+								title={`确认删除该职位吗?`}
+								// onConfirm={() => this.handleDel(record.user_id)}
+								okText="确认"
+								cancelText="取消"
+							>
+								<a href="#">删除</a>
+							</Popconfirm>
+						</span>
+					)
+				}
+			}
+		];
+		return columns;
+	}
+
+	render() {
+		const {listInfo, actions} = this.props;
+		const columns = this.getColumns();
+
+		return (
+			<div>
+				<Button type="primary" className="g-m-b" onClick={this.handleShowModal}>
+					添加职位
+				</Button>
+				<Table
+					loading={listInfo.loading}
+					rowKey={"role_id"}
+					columns={columns}
+					dataSource={listInfo.list}
+				/>
+				<PositionAddModal
+					key={this.state.modalKey}
+					actions={actions}
+					positionInfo={this.state.positionInfo || {}}
+					visible={this.state.visible}
+					type={this.state.type}
+					onShowModal={this.handleShowModal}
+					onHideModal={this.handleHideModal}
+				/>
+			</div>
+		);
+	}
+}
+
+export default PersonList;

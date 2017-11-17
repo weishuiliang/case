@@ -1,0 +1,103 @@
+/**
+ * 组织结构 -- 人员列表
+ */
+import * as types from '../../contants/actionTypes/organize';
+
+const initState = {
+	personList: [],
+	groupList: []
+};
+
+const editGroup = (array, data) => {
+	let groupArray = [...array];
+	for (let i = 0; i < groupArray.length; i++) {
+		if (groupArray[i].group_id == data.group_id) {
+			groupArray[i] = {...groupArray[i], ...data}
+		}
+	}
+	return groupArray;
+};
+
+const delGroup = (array, id) => {
+	let groupArray = array.filter((item) => {
+		return item.group_id != id;
+	});
+
+	return groupArray;
+};
+
+const editPerson = (array, data) => {
+	let personArray = [...array];
+	for (let i = 0; i < personArray.length; i++) {
+		if (personArray[i].user_id == data.user_id) {
+			personArray[i] = {...personArray[i], ...data}
+		}
+	}
+	return personArray;
+};
+
+const delPerson = (array, id) => {
+	let personArray = array.filter((item) => {
+		return item.user_id != id;
+	});
+
+	return personArray;
+};
+
+const organizeReducer = (state = initState, action) => {
+	switch(action.type) {
+		case types.ORGANIZE_PERSON_LIST_GET:
+			state = {
+				...state,
+				personList: [...action.data]
+			};
+			return state;
+		case types.ORGANIZE_PERSON_ADD_POST:
+			state = {
+				...state,
+				personList: [action.data, ...state.personList]
+			};
+
+			return state;
+		case types.ORGANIZE_PERSON_EDIT_POST:
+			state = {
+				...state,
+				personList: editPerson(state.personList, action.data)
+			};
+			return state;
+		case types.ORGANIZE_PERSON_DEL_POST:
+			state = {
+				...state,
+				personList: delPerson(state.personList, action.id)
+			};
+			return state;
+		case types.ORGANIZE_GROUP_LIST_GET:
+			state = {
+				...state,
+				groupList: [...action.data]
+			};
+			return state;
+		case types.ORGANIZE_GROUP_ADD_POST:
+			state = {
+				...state,
+				groupList: [action.data, ...state.groupList]
+			};
+			return state;
+		case types.ORGANIZE_GROUP_EDIT_POST:
+			state = {
+				...state,
+				groupList: editGroup(state.groupList, action.data)
+			};
+			return state;
+		case types.ORGANIZE_GROUP_DEL_POST:
+			state = {
+				...state,
+				groupList: delGroup(state.groupList, action.id)
+			};
+			return state;
+		default:
+			return state;
+	}
+};
+
+export default organizeReducer;

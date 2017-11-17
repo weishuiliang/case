@@ -1,0 +1,143 @@
+<?php
+
+namespace manage\modules\home\services;
+
+use common\extensions\Helper;
+use common\models\Group;
+use common\models\Log;
+use common\models\User;
+use common\services\BaseService;
+use common\services\LogService;
+
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class GroupService extends BaseService
+{
+
+    public function getGroupList($is_page = 1)
+    {
+//        $current_page = Yii::$app->request->get('page', 1);
+        $list = Group::find()->where(['is_del' => 0, 'pid' => 0])->orderBy('group_id desc')->asArray()->all();
+        $this->getSon($list);
+        return $list;
+    }
+
+    /**
+     * @name 递归获取子列表
+     * @param array $list
+     * @return array
+     */
+    private function getSon(&$list)
+    {
+        if ($list) {
+            foreach ($list as &$val) {
+                $val['son_list'] = Group::find()->where(['is_del' => 0, 'pid' => $val['group_id']])->orderBy('group_id desc')->asArray()->all();
+                $this->getSon($val['son_list']);
+            }
+            return $list;
+        }
+    }
+
+    /**
+     * @name 获取所有部门
+     * @return array
+     */
+    public function getGroupAll()
+    {
+        return Group::find()->where(['is_del' => 0])->asArray()->all();
+    }
+
+    public function getSonGroupList($group_id)
+    {
+        $list = Group::find()->where(['pid' => $group_id, 'is_del' => 0])->asArray()->all();
+        foreach ($list as &$val) {
+            $val['has_son'] = Group::find()->where(['pid' => $val['group_id'], 'is_del' => 0])->exists();
+        }
+        return $list;
+    }
+
+    public function groupAdd($post)
+    {
+        $exist = $this->groupNameCheck($post['group_name']);
+        if ($exist) {
+            return Helper::msg(0, '该部门名称已经被人取了');
+        }
+        $group_model = new Group();
+        $group_model->pid = isset($post['pid']) ? $post['pid'] : 0;
+        $group_model->create_user = $_COOKIE['user_id'];
+        $group_model->group_name = $post['group_name'];
+        $group_model->create_time = time();
+        $group_model->update_time = time();
+        $is_save = $group_model->save();
+        if ($is_save) {
+            LogService::service()->saveLog($_COOKIE['account'], Log::MODULE_GROUP, $_COOKIE['account'] . '新增了部门' . $post['group_name']);
+            return Helper::msg(1, '添加成功', $group_model->attributes);
+        }
+        return Helper::msg(0, '添加失败');
+    }
+
+    public function groupEdit($post)
+    {
+        $model = Group::findOne(['group_id' => $post['group_id']]);
+        if (!$model) {
+            return Helper::msg(0, '不存在该部门');
+        }
+        $model->group_name = $post['group_name'];
+        if ($post['pid'] != 0) {
+            $pid_model = Group::findOne(['group_id' => $post['pid'], 'is_del' => 0]);
+            if (!$pid_model) {
+                return Helper::msg(0, '上级部门不存在或已删除');
+            }
+        }
+        $exist = $this->groupNameCheck($post['group_name'], $post['group_id']);
+        if ($exist) {
+            return Helper::msg(0, '该部门名称已经被人取了');
+        }
+        if (isset($post['pid'])) {
+            $model->pid = $post['pid'];
+        }
+        $model->update_time = time();
+        $is_save = $model->save();
+        $list[] = $model->attributes;
+        $this->getSon($list);
+        if ($is_save) {
+            LogService::service()->saveLog($_COOKIE['account'], Log::MODULE_GROUP, $_COOKIE['account'] . '编辑了部门' . $post['group_name']);
+            return Helper::msg(1, '编辑成功', $list);
+        }
+        return Helper::msg(0, '编辑失败');
+    }
+
+    private function groupNameCheck($group_name, $group_id = 0)
+    {
+        $where = !empty($group_id) ? 'group_id != ' . $group_id : '';
+        return Group::find()->where(['group_name' => $group_name])->andWhere($where)->exists();
+    }
+
+    public function groupDel($post)
+    {
+        $model = Group::findOne(['group_id' => $post['group_id'], 'is_del' => 0]);
+        if (!$model) {
+            return Helper::msg(0, '该部门不存在或已删除');
+        }
+        $son_model = Group::findOne(['pid' => $post['group_id'], 'is_del' => 0]);
+        if ($son_model) {
+            return Helper::msg(0, '该部门存在子部门，不能删除');
+        }
+        $user_exist = User::find()->where(['group_id' => $post['group_id'], 'is_del' => 0])->exists();
+        if ($user_exist) {
+            return Helper::msg(0, '该部门下还有员工,不能删除');
+        }
+        $model->is_del = 1;
+        $is_del = $model->save();
+        if ($is_del) {
+            LogService::service()->saveLog($_COOKIE['account'], Log::MODULE_GROUP, $_COOKIE['account'] . '删除了部门' . $model->group_name);
+            return Helper::msg(1, '删除成功');
+        }
+        return Helper::msg(0, '删除失败');
+    }
+
+}

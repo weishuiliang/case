@@ -1,0 +1,18 @@
+/**
+ * 用户设置POp
+ */
+import React, { Component } from 'react';
+
+class UserSettingPop extends Component {
+
+	render() {
+		return (
+			<div>
+				<p className="pointer">修改</p>
+				<p className="pointer">退出</p>
+			</div>
+		)
+	}
+}
+
+export default UserSettingPop;

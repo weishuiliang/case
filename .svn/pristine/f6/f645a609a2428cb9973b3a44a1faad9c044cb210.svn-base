@@ -1,0 +1,30 @@
+<?php
+
+namespace manage\modules\home\controllers;
+
+use common\extensions\Helper;
+use manage\modules\home\services\LoginService;
+use Yii;
+use yii\web\Controller;
+
+/**
+ * Home controller for the `home` module
+ */
+class LoginController extends Controller
+{
+
+    public function actionLogin()
+    {
+        $post = Yii::$app->request->post();
+        if (empty(trim($post['account'])) || empty(trim($post['pwd']))) {
+            return json_encode(Helper::msg(0, '请输入用户名及密码'));
+        }
+        $res = LoginService::service()->login($post);
+        if (is_bool($res)) {
+            return json_encode(Helper::msg(1, '登录成功'));
+        }
+        return json_encode(Helper::msg(0, $res));
+    }
+
+    
+}

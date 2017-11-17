@@ -1,0 +1,48 @@
+<?php
+
+namespace common\models;
+
+use Yii;
+
+/**
+ * This is the model class for table "oa_role".
+ *
+ * @property integer $role_id
+ * @property string $role_name
+ * @property integer $group_id
+ * @property integer $create_time
+ */
+class Role extends \yii\db\ActiveRecord
+{
+    /**
+     * @inheritdoc
+     */
+    public static function tableName()
+    {
+        return 'oa_role';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['group_id', 'create_time'], 'integer'],
+            [['role_name'], 'string', 'max' => 32],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'role_id' => 'Role ID',
+            'role_name' => 'Role Name',
+            'group_id' => 'Group ID',
+            'create_time' => 'Create Time',
+        ];
+    }
+}

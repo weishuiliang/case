@@ -1,0 +1,132 @@
+import React from 'react';
+import axios from 'axios';
+import qs from 'qs';
+import {
+	Form, Input, DatePicker, Select, Button, Card, InputNumber, Radio, Icon, Tooltip,
+} from 'antd';
+
+import API from '../../contants/ApiRoot';
+import { TASK_ADD_POST } from '../../contants/actionTypes/task';
+
+const FormItem = Form.Item;
+const { Option } = Select;
+const { RangePicker } = DatePicker;
+const { TextArea } = Input;
+
+class TaskForms extends React.PureComponent {
+	handleSubmit = (e) => {
+		e.preventDefault();
+		this.props.form.validateFieldsAndScroll((err, values) => {
+			if (!err) {
+				axios({
+					method: 'post',
+					url: API[TASK_ADD_POST],
+					data: qs.stringify(values),
+				}).then(function(data) {
+					if (data.data.status.toString() === '1') {
+						alert('添加成功');
+					} else {
+						alert(`添加失败: ${data.data.msg}`);
+					}
+				});
+				// axios.post('http://manage.case.com/task/task/task-add.json', values);
+				console.log(values);
+			}
+		});
+	}
+	render() {
+		const { submitting } = this.props;
+		const { getFieldDecorator, getFieldValue } = this.props.form;
+
+		const formItemLayout = {
+			labelCol: {
+				xs: { span: 24 },
+				sm: { span: 7 },
+			},
+			wrapperCol: {
+				xs: { span: 24 },
+				sm: { span: 12 },
+				md: { span: 10 },
+			},
+		};
+
+		const submitFormLayout = {
+			wrapperCol: {
+				xs: { span: 24, offset: 0 },
+				sm: { span: 10, offset: 7 },
+			},
+		};
+
+		return (
+			<Form
+				onSubmit={this.handleSubmit}
+				hideRequiredMark
+				style={{ marginTop: 8 }}
+			>
+				<FormItem
+					{...formItemLayout}
+					label="标题"
+				>
+					{getFieldDecorator('task_name', {
+						rules: [{
+							required: true, message: '请输入标题',
+						}],
+					})(
+						<Input placeholder="给任务起个名字" />
+					)}
+				</FormItem>
+				<FormItem
+					{...formItemLayout}
+					label="前端负责人"
+				>
+					{getFieldDecorator('front_user_name', {
+						rules: [{
+							required: true, message: '请输入前端负责人',
+						}],
+					})(
+						<Input placeholder="请输入前端负责人姓名" />
+					)}
+				</FormItem>
+				<FormItem
+					{...formItemLayout}
+					label="后端负责人"
+				>
+					{getFieldDecorator('back_user_name', {
+						rules: [{
+							required: true, message: '请输入后端负责人',
+						}],
+					})(
+						<Input placeholder="请输入后端负责人姓名" />
+					)}
+				</FormItem>
+				<FormItem
+					{...formItemLayout}
+					label="任务难度"
+					help="任务的难易程度，默认为 “一般” 难度"
+				>
+					{getFieldDecorator('task_level', {
+						initialValue: '20',
+						rules: [{
+							required: true, message: '请选择任务难度',
+						}],
+					})(
+						<Radio.Group>
+							<Radio value="10">简单</Radio>
+							<Radio value="20">一般</Radio>
+							<Radio value="30">困难</Radio>
+						</Radio.Group>
+					)}
+				</FormItem>
+				<FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
+					<Button type="primary" htmlType="submit" loading={submitting}>
+						提交
+					</Button>
+					<Button style={{ marginLeft: 8 }}>保存</Button>
+				</FormItem>
+			</Form>
+		);
+	}
+}
+
+const WrappedTaskForms = Form.create()(TaskForms);
+export default WrappedTaskForms;

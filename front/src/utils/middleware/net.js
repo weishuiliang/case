@@ -1,0 +1,89 @@
+/**
+ * 网络请求中间件封装
+ */
+import axios from 'axios';
+import Qs from 'qs';
+import NProgress from './nprogress/nprogressConfig';
+import API from '../../contants/ApiRoot';
+
+const createRequest = (method, url, params) => {
+	method = method.toUpperCase();
+	if (method === 'GET') {
+		return axios.get(url, {
+			params: {
+				...params
+			}
+		})
+	} else if (method === 'POST') {
+		return axios({
+			method: 'post',
+			url: url,
+			data: {
+				...params
+			},
+			transformRequest: [function (data, headers) {
+				data = Qs.stringify(data);
+				return data;
+			}]
+		})
+	} else {
+		console.error('Unknowe method');
+		return null;
+	}
+};
+
+const net = (store) => (next) => (action) => {
+	let { type, options={} } = action;
+	let { progress, middleNet } = options;
+	if (!API[type] || !middleNet) return next(action); // 非网络请求 / 请求不经过该Middle退出
+
+	let { method, params, callback } = action;
+	let { onSuccess, onError } = callback;
+
+	//开始请求,分发正在请求的actionType
+	progress && NProgress.set(0.4);
+
+	next({
+		type: type + '_ON'
+	});
+
+	let request = createRequest(method, API[type], params);
+	if (!request) {                       // 请求方法不对退出
+		NProgress.done();
+		return next(action);
+	}
+
+	request.then((response) => {
+		NProgress.done();
+		if (response.data.status) {
+			//请求成功回调
+			onSuccess && onSuccess(response.data.data);
+			return next({
+				type: type + '_SUCCESS',
+				data: response.data.data,
+			});
+		} else {
+			//服务器返回的请求失败回调
+			onError && onError(response.data.msg);
+			return next({
+				type: type + '_ERROR'
+			});
+		}
+	}).catch((error) => {
+		NProgress.done();
+		if (error.response) {
+			//请求已经发出，但是服务器响应返回的状态吗不在2xx的范围内
+			//分发请求失败的actionType
+			onError && onError(error.response.statusText);
+			return next({
+				type: type + '_ERROR'
+			});
+
+		} else {
+			//一些在设置请求的时候触发的错误
+			console.log('Error', error.message);
+		}
+	})
+};
+
+export default net;

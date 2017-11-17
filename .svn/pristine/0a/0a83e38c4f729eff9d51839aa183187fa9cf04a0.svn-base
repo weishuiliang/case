@@ -1,0 +1,165 @@
+/**
+ * 新增职位
+ */
+import React, { Component } from 'react';
+import { Modal, Button, Form, Icon, Input, message, Select } from 'antd'
+import axios from 'axios';
+import API from '../../../contants/ApiRoot';
+import { openNotification } from '../../../utils/utils';
+
+import * as types from '../../../contants/actionTypes/organize';
+
+const FormItem = Form.Item;
+const Option = Select.Option;
+const formItemLayout = {
+	labelCol: {
+		xs: { span: 24 },
+		sm: { span: 6 },
+	},
+	wrapperCol: {
+		xs: { span: 24 },
+		sm: { span: 14 },
+	},
+};
+
+class AddPosition extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			loading: false,
+			selectList: []
+		};
+		this.handleOk = this.handleOk.bind(this);
+		this.handleSubmit = this.handleSubmit.bind(this);
+	}
+
+	componentDidMount() {
+		this.fetchSelectList();
+	}
+
+	handleOk(values) {
+		const { actions, type, onHideModal, positionInfo } = this.props;
+		this.setState({ loading: true });
+		let data = {
+			type: type === 'new' ? types.ORGANIZE_POSITION_ADD_POST : types.ORGANIZE_POSITION_EDIT_POST,
+			method: 'post',
+			params: {
+				position: values.position,
+				group_id: values.groupID
+			}
+		};
+		let callback = {
+			onSuccess: (data) => {
+				this.setState({ loading: false });
+				openNotification('success', type === 'new' ? '添加成功' : '修改成功');
+				onHideModal && onHideModal();
+			},
+			onError: (err) => {
+				openNotification('error', err);
+				this.setState({ loading: false });
+			}
+		};
+		actions.request(data, callback, {middleNet: true});
+	}
+
+	/**
+	 * 请求部门列表
+	 */
+	fetchSelectList() {
+		axios.get(API[types.ORGANIZE_GROUP_LIST_GET], {
+			params: {
+				is_page: 0
+			}
+		})
+		.then((response) => {
+			if (response.statusText === 'OK') {
+				if (response.data.status == 1) {
+					this.setState({selectList: response.data.data.list})
+				} else {
+					console.log(response.data.msg);
+					openNotification('error', response.data.msg);
+				}
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+		});
+	}
+
+	handleSubmit(e) {
+		e.preventDefault();
+		this.props.form.validateFields((err, values) => {
+			if (!err) {
+				console.log('Received values of form: ', values);
+				this.handleOk(values);
+			}
+		});
+	}
+
+	setSelectConfig() {
+		const { positionInfo } = this.props;
+		let config = {rules: [{required: true, message: '请选择部门' }]};
+
+		if (!!positionInfo.group_id && positionInfo.group_id !== '0') {
+			config.initialValue = `${positionInfo.group_id || ''}`;
+		}
+
+		return config;
+	}
+
+	render() {
+		const { loading, selectList } = this.state;
+		const { positionInfo, visible, type, onHideModal } = this.props;
+		const { getFieldDecorator } = this.props.form;
+
+		return (
+			<Modal
+				visible={visible}
+				title={type === 'new' ? "新增职位" : "修改职位信息"}
+				onOk={this.handleOk}
+				onCancel={onHideModal}
+				footer={null}
+			>
+				<Form onSubmit={this.handleSubmit} className="login-form">
+					<FormItem
+						{...formItemLayout}
+						label="职位名称"
+					>
+						{getFieldDecorator('position', {
+							initialValue: `${positionInfo.position || ''}`,
+							rules: [{ required: true, message: '请输入职位名称' }],
+						})(
+							<Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="职位名称" />
+						)}
+					</FormItem>
+					<FormItem
+						{...formItemLayout}
+						label="所属部门"
+					>
+						{getFieldDecorator('groupID', this.setSelectConfig())(
+							<Select placeholder={'请选择部门'}>
+								{
+									selectList.length > 0 && selectList.map((item, index) => {
+										return (
+											<Option key={item.group_id + ''} value={item.group_id + ''}>{item.group_name}</Option>
+										)
+									})
+								}
+							</Select>
+						)}
+					</FormItem>
+					<FormItem>
+						<div className="g-flex g-jc-end" style={{marginBottom: '-20px'}}>
+							<Button key="back" size="large" onClick={onHideModal}>取消</Button>,
+							<Button key="submit" type="primary" size="large" loading={loading} htmlType="submit">
+								{type === 'edit' ? '修改' : '添加'}
+							</Button>
+						</div>
+					</FormItem>
+				</Form>
+			</Modal>
+		);
+	}
+}
+
+export default Form.create()(AddPosition)

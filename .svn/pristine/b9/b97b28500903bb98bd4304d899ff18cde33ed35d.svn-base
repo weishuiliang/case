@@ -1,0 +1,65 @@
+<?php
+namespace manage\modules\task\services;
+
+use common\models\Task;
+use common\models\TaskLevel;
+use common\services\BaseService;
+
+/**
+ * Description of TaskService
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:19
+ */
+class TaskService extends BaseService
+{
+    
+    public function getTaskList()
+    {
+        $task_list = Task::find()
+                ->select('task_id, task_name, task_level, front_user_id, front_user_name, front_start_time,'
+                        . 'front_end_time, front_status,'
+                        . 'back_user_id, back_user_name, back_start_time, back_end_time,'
+                        . 'back_status, create_time, over_time')
+                ->asArray()
+                ->all();
+        foreach ($task_list as &$val) {
+            $val['front_start_time'] = \common\extensions\Helper::toDateTime($val['front_start_time']);
+            $val['front_end_time']   = \common\extensions\Helper::toDateTime($val['front_end_time']);
+            $val['back_start_time']  = \common\extensions\Helper::toDateTime($val['back_start_time']);
+            $val['back_end_time']  = \common\extensions\Helper::toDateTime($val['back_end_time']);
+            $val['create_time']  = \common\extensions\Helper::toDateTime($val['create_time']);
+            $val['over_time']  = \common\extensions\Helper::toDateTime($val['over_time']);
+
+        }
+        return $task_list;
+    }
+    
+    public function taskAdd($post)
+    {
+        $task_model = new Task();
+        $task_model->task_name = $post['task_name'];
+        $task_model->task_level = isset($post['task_level']) ? $post['task_level'] : Task::LEVEL_EASY;
+        $task_model->create_user = 1;
+        $task_model->create_time = time();
+        $is_save = $task_model->save();
+        return $is_save;
+    }
+    
+    public function getTaskLevelList()
+    {
+        return TaskLevel::find()->asArray->all();
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+}

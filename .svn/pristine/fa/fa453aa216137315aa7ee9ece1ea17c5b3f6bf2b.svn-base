@@ -1,0 +1,38 @@
+/**
+ * 部门列表
+ */
+import React, { Component } from 'react';
+// redux相关
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as actions from '../../actions/organize';
+//component
+import GroupList from '../../components/Organize/GroupList/GroupList'
+
+class OrganizeGroupList extends Component {
+
+	render() {
+		const { organizeReducer, actions } = this.props;
+
+		return (
+			<GroupList
+				data={organizeReducer.groupList}
+				actions={actions}
+			/>
+		)
+	}
+}
+
+function mapStateToProps(state) {
+	return {
+		organizeReducer: state.organizeReducer,
+	};
+}
+
+function mapDispatchToProps(dispatch) {
+	return {
+		actions: bindActionCreators(actions, dispatch)
+	};
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(OrganizeGroupList);

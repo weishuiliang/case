@@ -1,0 +1,57 @@
+/**
+ * 任务列表
+ */
+import React from 'react';
+// redux相关
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as actions from '../../actions/task';
+//component
+import TaskTableList from '../../components/Task/TaskTableList';
+
+// import ModifyTaskModal from './ModifyTaskModal_r';
+import ModifyTaskModal from '../../components/Task/ModifyTaskModal';
+
+
+class Task extends React.Component {
+	state ={
+    modalVisible: false,
+    confirmLoading: false,
+	}
+
+	handleOpenModal = () => {
+		this.setState({
+			modalVisible: true,
+		})
+	}
+
+	handleCloseModal = () => {
+		this.setState({
+			modalVisible: false,
+		})
+	}
+
+  render() {
+    const { taskReducer, actions } = this.props;
+    return (
+			<div>
+				<TaskTableList handleOpenModal={this.handleOpenModal} data={taskReducer.taskList} actions={actions} />
+				<ModifyTaskModal handleCancel={this.handleCloseModal} visible={this.state.modalVisible} initialValue={taskReducer.modifyTask} />
+			</div>
+		);
+  }
+}
+
+function mapStateToProps(state) {
+	return {
+		taskReducer: state.taskReducer,
+	};
+}
+
+function mapDispatchToProps(dispatch) {
+	return {
+		actions: bindActionCreators(actions, dispatch)
+	};
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Task);

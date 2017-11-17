@@ -1,0 +1,31 @@
+<?php
+
+namespace manage\modules\home\controllers;
+
+use common\extensions\Helper;
+use manage\modules\home\services\RoleService;
+use yii\web\Controller;
+
+/**
+ * Description of RoleController
+ *
+ * @author wsl
+ * @data 2017-11-9 15:02:17
+ */
+class RoleController extends Controller
+{
+
+    /**
+     * @name 
+     * @author wsl
+     * @data 2017-11-9 15:02:17
+     */
+    public function actionList()
+    {
+        $list = RoleService::service()->getRoleList();
+        return json_encode(Helper::msg(1, '', $list));
+    }
+    
+    
+    
+}

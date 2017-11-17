@@ -1,0 +1,66 @@
+import React from 'react';
+import { Table } from 'antd';
+import API from '../../contants/ApiRoot';
+import {TASK_GET} from '../../contants/actionTypes/task';
+
+import axios from 'axios';
+
+const columns = [
+	{
+		title: '任务名称',
+		dataIndex: 'task_name',
+	},
+	{
+		title: '难度',
+		dataIndex: 'task_level_name',
+	},
+	{
+		title: '前端',
+		dataIndex: 'front_user_name',
+	},
+	{
+		title: '后端',
+		dataIndex: 'back_user_name',
+	},
+	{
+		title: '开始时间（前端）',
+		dataIndex: 'front_start_time',
+	},
+	{
+		title: '预计完成时间（前端）',
+		dataIndex: 'front_end_time',
+	},
+	{
+		title: '开始时间（后端）',
+		dataIndex: 'back_start_time'
+	},
+	{
+		title: '预计完成时间（后端）',
+		dataIndex: 'back_end_time',
+	},
+	{
+		title: '实际完成时间',
+		dataIndex: 'over_time',
+	}
+];
+
+class TaskTable extends React.Component {
+	state = {
+		data: []
+	};
+	componentDidMount() {
+		const that = this;
+		axios.get(API[TASK_GET]).then(function(response) {
+			console.log(response);
+			that.setState({
+				data: response.data.data,
+			});
+		});
+	}
+
+	render() {
+		return <Table rowKey="task_id" columns={columns} dataSource={this.state.data} />;
+	}
+}
+
+export default TaskTable;

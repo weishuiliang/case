@@ -1,0 +1,32 @@
+<?php
+namespace manage\modules\task\services;
+
+use common\models\Task;
+use common\models\TaskProcess;
+use common\services\BaseService;
+
+/**
+ * Description of TaskService
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:19
+ */
+class TaskService extends BaseService
+{
+    
+    public function getTaskList()
+    {
+        $task_list = Task::find()
+                ->asArray()
+                ->all();
+        if (!empty($task_list)) {
+            foreach ($task_list as &$val) {
+                $val['process_list'] = TaskProcess::find()->where(['task_id' =>$val['task_id']])->asArray()->all();
+                
+            }
+        }
+        return $task_list;
+    }
+    
+
+}

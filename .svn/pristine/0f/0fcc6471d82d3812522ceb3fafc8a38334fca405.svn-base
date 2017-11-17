@@ -1,0 +1,11 @@
+import login from './api/login';
+import task from './api/task';
+import organize from './api/organize';
+
+const ApiRoot = {
+    ...login,
+    ...task,
+	...organize
+};
+
+export default ApiRoot;

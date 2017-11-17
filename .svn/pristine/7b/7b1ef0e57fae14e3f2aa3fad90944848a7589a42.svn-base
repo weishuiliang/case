@@ -1,0 +1,143 @@
+<?php
+namespace manage\modules\task\services;
+
+use common\extensions\Helper;
+use common\models\Task;
+use common\models\TaskLevel;
+use common\services\BaseService;
+
+/**
+ * Description of TaskService
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:19
+ */
+class TaskService extends BaseService
+{
+    
+    public function getTaskList()
+    {
+        $task_list = Task::find()
+                ->alias('t')
+                ->select('task_id, task_name, t.task_level, l.task_level_name, front_user_id, front_user_name, front_start_time,'
+                        . 'front_end_time, front_status,'
+                        . 'back_user_id, back_user_name, back_start_time, back_end_time,'
+                        . 'back_status, t.create_time, over_time')
+                ->leftJoin(['l' => TaskLevel::tableName()], 't.task_level = l.task_level')
+                ->asArray()
+                ->all();
+        foreach ($task_list as &$val) {
+            $val['front_start_time'] = Helper::toDateTime($val['front_start_time']);
+            $val['front_end_time']   = Helper::toDateTime($val['front_end_time']);
+            $val['back_start_time']  = Helper::toDateTime($val['back_start_time']);
+            $val['back_end_time']  = Helper::toDateTime($val['back_end_time']);
+            $val['create_time']  = Helper::toDateTime($val['create_time']);
+            $val['over_time']  = Helper::toDateTime($val['over_time']);
+
+        }
+        return $task_list;
+    }
+    
+    public function taskAdd($post)
+    {
+        $task_model = new Task();
+        $task_model->task_name = $post['task_name'];
+        $task_model->task_level = isset($post['task_level']) ? $post['task_level'] : Task::LEVEL_EASY;
+        $task_model->front_user_name = $post['front_user_name'];
+        $task_model->back_user_name = $post['back_user_name'];
+        $task_model->front_start_time = $post['front_start_time'];
+        $task_model->front_end_time = $post['front_end_time'];
+        $task_model->back_start_time = $post['back_start_time'];
+        $task_model->back_end_time = $post['back_end_time'];
+        $task_model->create_user = 1;
+        $task_model->create_time = time();
+        $is_save = $task_model->save();
+
+        return $is_save;
+    }
+    
+    public function getTaskLevelList()
+    {
+        return TaskLevel::find()->asArray()->all();
+    }
+    
+    public function taskOver($post)
+    {
+        $model = Task::findOne(['task_id' =>$post['task_id']]);
+        if (!$model) {
+            return Helper::msg(0, '该任务不存在或已删除');
+        }
+        if ($model->over_time !=0) {
+            return Helper::msg(0, '该任务已结束');
+        }
+        $model->over_time = $post['over_time'];
+        $is_save = $model->save();
+        if ($is_save) {
+            return Helper::msg(1, '操作成功');
+        }
+        return Helper::msg(0, '操作失败');
+    }
+    
+    public function taskUpdate($post)
+    {
+        $model = Task::findOne(['task_id' =>$post['task_id']]);
+        if (!$model) {
+            return Helper::msg(0, '该任务不存在或已删除');
+        }
+        if ($model->over_time !=0) {
+            return Helper::msg(0, '该任务已结束,不能修改');
+        }
+        if (isset($post['task_name']) && !empty($post['task_name'])) {
+            $model->task_name = $post['task_name'];
+        }
+        if (isset($post['front_user_name']) && !empty($post['front_user_name'])) {
+            $model->front_user_name = $post['front_user_name'];
+        }
+        if (isset($post['front_start_time']) && !empty($post['front_start_time'])) {
+            $model->front_start_time = $post['front_start_time'];
+        }
+        if (isset($post['front_end_time']) && !empty($post['front_end_time'])) {
+            $model->front_end_time = $post['front_end_time'];
+        }
+        if (isset($post['back_user_name']) && !empty($post['back_user_name'])) {
+            $model->back_user_name = $post['back_user_name'];
+        }
+        if (isset($post['back_start_time']) && !empty($post['back_start_time'])) {
+            $model->back_start_time = $post['back_start_time'];
+        }
+        if (isset($post['back_end_time']) && !empty($post['back_end_time'])) {
+            $model->back_end_time = $post['back_end_time'];
+        }
+        if (isset($post['task_level']) && !empty($post['task_level'])) {
+            $model->task_level = $post['task_level'];
+        }
+        $is_save = $model->save();
+        if ($is_save) {
+            return Helper::msg(1, '操作成功');
+        }
+        return Helper::msg(0, '操作失败');
+        
+    }
+    
+    public function taskDel($post)
+    {
+        $model = Task::findOne(['task_id' => $post['task_id']]);
+        if (!$model) {
+            return Helper::msg(0, '该任务不存在或已删除');
+        }
+        if ($model->over_time !=0) {
+            return Helper::msg(0, '该任务已结束不能删除');
+        }
+        $is_del = $model->delete();
+        if ($is_del) {
+            return Helper::msg(1, '删除成功');
+        }
+        return Helper::msg(0, '删除失败');
+    }
+    
+    
+    
+    
+    
+    
+}

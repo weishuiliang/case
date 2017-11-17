@@ -1,0 +1,156 @@
+<?php
+
+namespace manage\modules\home\services;
+
+use common\extensions\Helper;
+use common\models\Group;
+use common\models\Log;
+use common\models\Role;
+use common\models\User;
+use common\services\BaseService;
+use common\services\LogService;
+use Yii;
+use yii\data\Pagination;
+
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class UserService extends BaseService
+{
+
+    public function userAdd($post)
+    {
+        $role_model = Role::findOne(['role_id' => $post['role_id']]);
+        if (!$role_model) {
+            return Helper::msg(0, '不存在该角色');
+        }
+        $group_model = Group::findOne(['group_id' => $post['group_id']]);
+        if (!$group_model) {
+            return Helper::msg(0, '不存在该部门');
+        }
+        $user_model = new User();
+        $user_model->account = $post['account'];
+        $salt = substr(md5(time()), 5, 6);
+        $user_model->pwd = md5('123456' . $salt); //默认密码123456
+        $user_model->salt = $salt;
+        $user_model->name = $post['name'];
+        $user_model->user_sn = isset($post['user_sn']) ? $post['user_sn'] : '';
+        $user_model->avatar = isset($post['avatar']) ? $post['avatar'] : '';
+        $user_model->mobile = $post['mobile'];
+        $user_model->role_id = $post['role_id'];
+        $user_model->group_id = $post['group_id'];
+        $user_model->create_time = time();
+        $user_model->update_time = time();
+
+        $is_save = $user_model->save();
+        if ($is_save) {
+            LogService::service()->saveLog($_COOKIE['account'], Log::MODULE_USER, $_COOKIE['account'] . '新增了用户' . $post['account']);
+            return Helper::msg(1, '添加成功', array_merge($user_model->attributes, ['position' => $role_model->position, 'group_name' => $group_model->group_name]));
+        }
+        return Helper::msg(0, '添加失败');
+    }
+
+    public function getUserList()
+    {
+        $current_page = Yii::$app->request->get('page', 1);
+        $query = User::find()->where(['is_del' => 0]);
+        $total_count = $query->count();
+        $page = new Pagination(['totalCount' => $total_count, 'pageSize' => 10]);
+        $list = $query
+                ->offset($page->offset)
+                ->limit($page->limit)
+                ->orderBy('user_id desc')
+                ->asArray()
+                ->all();
+        foreach ($list as &$val) {
+            $val['group_name'] = Group::find()->select('group_name')->where(['group_id' => $val['group_id']])->scalar();
+            $val['position'] = Role::find()->select('position')->where(['role_id' => $val['role_id']])->scalar();
+        }
+        return ['currentPage' => $current_page, 'totalCount' => $total_count, 'list' => $list];
+    }
+
+    public function userUpdate($post)
+    {
+        $role_model = Role::findOne(['role_id' => $post['role_id']]);
+        if (!$role_model) {
+            return Helper::msg(0, '不存在该角色');
+        }
+        if (isset($post['group_id']) && !empty($post['group_id'])) {
+            $group_model = Group::findOne(['group_id' => $post['group_id']]);
+            if (!$group_model) {
+                return Helper::msg(0, '不存在该部门');
+            }
+        }
+        $model = User::findOne(['user_id' => $post['user_id']]);
+        if (isset($post['name']) && !empty($post['name'])) {
+            $model->name = $post['name'];
+        }
+        if (isset($post['mobile']) && !empty($post['mobile'])) {
+            $model->mobile = $post['mobile'];
+        }
+        if (isset($post['role_id']) && !empty($post['role_id'])) {
+            $model->role_id = $post['role_id'];
+        }
+        if (isset($post['group_id']) && !empty($post['group_id'])) {
+            $model->group_id = $post['group_id'];
+        }
+        if (isset($post['pwd']) && !empty($post['pwd'])) {
+            $salt = substr(md5(time()), 5, 6);
+            $model->pwd = md5($post['pwd'] . $salt);
+            $model->salt = $salt;
+        }
+        if (isset($post['avatar']) && !empty($post['avatar'])) {
+            $model->avatar = $post['avatar'];
+        }
+        if (isset($post['user_sn']) && !empty($post['user_sn'])) {
+            $model->user_sn = $post['user_sn'];
+        }
+        $model->update_time = time();
+        $is_save = $model->save();
+        if ($is_save) {
+            LogService::service()->saveLog($_COOKIE['account'], Log::MODULE_USER, $_COOKIE['account'] . '编辑了用户信息' . $model->account);
+            return Helper::msg(1, '更新成功', array_merge($model->attributes, ['position' => $role_model->position, 'group_name' => $group_model->group_name]));
+        }
+        return Helper::msg(0, '更新失败');
+    }
+
+    public function userDel($post)
+    {
+        $model = User::findOne(['user_id' => $post['user_id'], 'is_del' => 0]);
+        if (!$model) {
+            return $msg = '该用户不存在或已删除';
+        }
+        $is_save = $model->is_del = 1;
+        if ($is_save) {
+            LogService::service()->saveLog($_COOKIE['account'], Log::MODULE_USER, $_COOKIE['account'] . '删除了用户' . $model->account);
+        }
+        return $is_save;
+    }
+
+    public function changePwd($post)
+    {
+        $model = User::findOne(['user_id' => $post['user_id']]);
+        if (!$model) {
+            return $msg = '该用户不存在或已删除';
+        }
+        $salt = substr(md5(time()), 5, 6);
+        $model->pwd = md5($post['pwd'] . $salt); //默认密码123456
+        $model->salt = $salt;
+        return $model->save();
+    }
+
+    public function getUserRoleList($role_type)
+    {
+        $user_list = User::find()
+                ->alias('u')
+                ->leftJoin(['r' => Role::tableName()], 'u.role_id =r.role_id and u.group_id =r.group_id')
+                ->where(['role_type' => $role_type, 'u.is_del' => 0])
+                ->asArray()
+                ->all();
+        return $user_list;
+    }
+
+}

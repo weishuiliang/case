@@ -1,0 +1,751 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: XYQ
+ * Date: 2017/6/29
+ * Time: 14:21
+ */
+
+namespace common\extensions;
+
+
+use dosamigos\qrcode\QrCode;
+use Exception;
+use Yii;
+
+class Helper
+{
+    /**
+     * @name 前后台统一返回结果
+     * @author xyq
+     * @param $status
+     * @param string $msg
+     * @param null $data
+     * @return array
+     */
+    public static function msg($status, $msg = 'success', $data = null)
+    {
+        $result = ['status' => (int)$status, 'msg' => $msg];
+        if (!is_null($data)) {
+            $result['data'] = $data;
+        }
+        return $result;
+    }
+
+    public static function toTaskLevel($level)
+    {
+        if ($level == '简单') {
+            return 10;
+        } elseif ($level == '困难') {
+            return 30;
+        }
+        return 20;
+    }
+    
+    public static function toChineseTaskLevel($level)
+    {
+        if ($level == 10) {
+            return '简单';
+        } elseif ($level == 30) {
+            return '困难';
+        }
+        return '一般';
+    }
+    
+    /**
+     * @name 获取当前月
+     * @author xyq
+     * @return bool|string
+     */
+    public static function getCurrentMonth()
+    {
+        return date('Y-m');
+    }
+
+    /**
+     * @name 获取下个月
+     * @author xyq
+     * @return bool|string
+     */
+    public static function getNextMonth()
+    {
+        return date('Y-m', strtotime(date('Y-m-t' . ' 23:59:59')) + 1);
+    }
+
+    /**
+     * @name 获取上个月
+     * @author sunbingjie
+     * @param int $current_time
+     * @return false|string
+     */
+    public static function getLastMonth($current_time = 0)
+    {
+        $current_time = empty($current_time) ? time() : $current_time;
+        return date('Y-m', strtotime(date('Y', $current_time) . '-' . (date('m', $current_time) - 1)));
+    }
+
+    /**
+     * @name 验证年月是否符合格式要求
+     * @author xyq
+     * @param $month
+     * @return int
+     */
+    public static function checkMonth($month)
+    {
+        return preg_match('/^[1-9][0-9]{3}[-](0?[1-9]|1[012])$/', $month);
+    }
+
+    /**
+     * @name 返回总代理商等级数组
+     * @author xyq
+     * @return array
+     */
+    public static function getAllAgentLevel()
+    {
+        return [20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
+    }
+
+    /**
+     * @name 验证是否是手机号
+     * @author xyq
+     * @param $mobile
+     * @return int
+     */
+    public static function checkMobile($mobile)
+    {
+        return preg_match('/^1[3|4|5|7|8]\d{9}$/', $mobile);
+    }
+
+    /**
+     * @name 验证email地址
+     * @author xyq
+     * @param $email
+     * @return int
+     */
+    public static function checkEmail($email)
+    {
+        return preg_match('/^(\w)+(\.\w+)*@(\w)+((\.\w+)+)$/', $email);
+    }
+
+    /**
+     * @name 数字与汉子转换
+     * @author fch
+     * @param $num
+     * @return mixed
+     */
+    public static function numToWord($num)
+    {
+        $chinese = array('', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十');
+        return $chinese[$num];
+    }
+
+    /**
+     * @name 等级对应的文字
+     * @author fch
+     * @param $level
+     * @return mixed
+     */
+    public static function LevelWord($level)
+    {
+        $chinese = [20 => 'A', 21 => 'B', 22 => 'C', 23 => 'D', 24 => 'E', 25 => 'F', 26 => 'G', 27 => 'H', 28 => 'I', 29 => 'J'];
+        if (isset($chinese[$level])) {
+            return $chinese[$level];
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @name 验证身份证号
+     * @author fch
+     * @param $vStr
+     * @return bool
+     */
+    static function verifyIdCard($vStr)
+    {
+        $vCity = array(
+            '11', '12', '13', '14', '15', '21', '22',
+            '23', '31', '32', '33', '34', '35', '36',
+            '37', '41', '42', '43', '44', '45', '46',
+            '50', '51', '52', '53', '54', '61', '62',
+            '63', '64', '65', '71', '81', '82', '91'
+        );
+        if (!preg_match('/^([\d]{17}[xX\d]|[\d]{15})$/', $vStr)) return false;
+
+        if (!in_array(substr($vStr, 0, 2), $vCity)) return false;
+
+        $vStr = preg_replace('/[xX]$/i', 'a', $vStr);
+        $vLength = strlen($vStr);
+
+        if ($vLength == 18) {
+            $vBirthday = substr($vStr, 6, 4) . '-' . substr($vStr, 10, 2) . '-' . substr($vStr, 12, 2);
+        } else {
+            $vBirthday = '19' . substr($vStr, 6, 2) . '-' . substr($vStr, 8, 2) . '-' . substr($vStr, 10, 2);
+        }
+
+        if (date('Y-m-d', strtotime($vBirthday)) != $vBirthday) return false;
+        if ($vLength == 18) {
+            $vSum = 0;
+
+            for ($i = 17; $i >= 0; $i--) {
+                $vSubStr = substr($vStr, 17 - $i, 1);
+                $vSum += (pow(2, $i) % 11) * (($vSubStr == 'a') ? 10 : intval($vSubStr, 11));
+            }
+
+            if ($vSum % 11 != 1) return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @name 生成随机字符串
+     * @author fch
+     * @param $len
+     * @param null $chars
+     * @return string
+     */
+    public static function getRandomString($len, $chars = null)
+    {
+        if (is_null($chars)) {
+            $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ23456789";
+        }
+        mt_srand(10000000 * (double)microtime());
+        for ($i = 0, $str = '', $lc = strlen($chars) - 1; $i < $len; $i++) {
+            $str .= $chars[mt_rand(0, $lc)];
+        }
+        return $str;
+    }
+
+    /**
+     * @name 展示金额
+     * @author xyq
+     * @param $value
+     * @param bool|true $format
+     * @return float|string
+     */
+    public static function moneyToShow($value, $format = true)
+    {
+        $value = floatval($value) * 0.01;
+
+        return $format ? number_format($value, 2, '.', '') : $value;
+    }
+
+    /**
+     * @name 保存金额
+     * @author xyq
+     * @param $value
+     * @return int
+     */
+    public static function moneyToSave($value)
+    {
+        return is_numeric($value) ? intval(strval($value * 100)) : 0;
+    }
+
+    /**
+     * @name 转换时间戳成年月日时分秒
+     * @author xyq
+     * @param $timestamp
+     * @return bool|string
+     */
+    public static function toDateTime($timestamp)
+    {
+        return $timestamp > 0 ? date('Y-m-d H:i:s', $timestamp) : '';
+    }
+
+    /**
+     * @name 转换时间戳成年月日
+     * @author xyq
+     * @param $timestamp
+     * @return bool|string
+     */
+    public static function toDate($timestamp)
+    {
+        return $timestamp ? date('Y-m-d', $timestamp) : '';
+    }
+
+    /**
+     * 生单号
+     * @return string
+     */
+    public static function createSn()
+    {
+        return date('YmdHis') . str_pad(mt_rand(1, 99999), 6, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * @name 生成二维码
+     * @user lhr
+     * @param $link
+     * @param bool $outfile
+     * @param int $level
+     * @param int $size
+     * @param int $margin
+     */
+    public static function createQR($link, $outfile = false, $level = 0, $size = 3, $margin = 1)
+    {
+        QrCode::png($link, $outfile, $level, $size, $margin);
+    }
+
+
+    public static function modelList()
+    {
+        return [
+            '1' => '平台模式',
+            '2' => '打款模式',
+            '3' => '自由模式',
+        ];
+    }
+
+    /**
+     * @author TYP
+     * @comment 伙伴数据物流查询接口2017
+     * @param $com
+     * @param $nu
+     * @param bool $source
+     * @return mixed
+     */
+    public static function getLogisticsApi($com, $nu, $source = false)
+    {
+        $com = self::trimAll($com);
+        $nu = self::trimAll($nu);
+        $id = 'kDnsys6sb137uas4aA966979'; //API KEY
+        $type = 'json';
+        $ord = 'desc';
+        $format = 'ickd';
+        $gateway = sprintf('http://q.kdpt.net/api?id=%s&com=%s&nu=%s&show=%s&order=%s&format=%s', $id, $com, $nu, $type, $ord, $format);
+        $ch = curl_init($gateway);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        $resp = curl_exec($ch);
+        $err_msg = curl_error($ch);
+        if ($err_msg) {
+            exit($err_msg);
+        }
+        curl_close($ch);
+        $result = json_decode($resp, true);
+        return $source ? $result : $result['data'];
+    }
+
+    /**
+     * @author TYP
+     * @comment 去掉字符串中所有的空格！
+     * @param $str
+     * @return mixed
+     */
+    public static function trimAll($str)
+    {
+        $before = [" ", "%", "\t", "\n", "\r"];
+        $after = ["", "", "", "", ""];
+        return str_replace($before, $after, $str);
+    }
+
+    /**
+     * @name 获取主域名
+     * @author xyq
+     * @return string
+     */
+    public static function getDomain()
+    {
+        $host = $_SERVER['SERVER_NAME'];
+        $host = explode('.', $host);
+        if (count($host) > 2) {
+            unset($host[0]);
+        }
+        return implode('.', $host);
+    }
+
+    /**
+     * @name 获取商家主域名
+     * @author xyq
+     * @return string
+     */
+    public static function getAdminDomain()
+    {
+        $host = $_SERVER['HTTP_HOST'];
+        $host = explode('.', $host);
+        if (count($host) > 2) {
+            return $host[0];
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @name 获取全域名
+     * @author xyq
+     * @return string
+     */
+    public static function getFullDomain()
+    {
+        return ($_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'];
+    }
+
+    /**
+     * @name curl_get请求
+     * @author xyq
+     * @param $url
+     * @param int $time
+     * @return mixed
+     * @throws \Exception
+     */
+    public static function httpGet($url, $time = 5)
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $time);//超时时间
+        curl_setopt($curl, CURLOPT_HEADER, 0);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE); // 对认证证书来源的检查
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE); // 从证书中检查SSL加密算法是否存在
+        curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; MSIE 5.01; Windows NT 5.0)'); // 模拟用户使用的浏览器
+        $responseText = curl_exec($curl);
+        //返回结果
+        if ($responseText) {
+            curl_close($curl);
+            return $responseText;
+        } else {
+            $error = curl_errno($curl);
+            curl_close($curl);
+            throw new \Exception("curl出错，错误码:$error");
+        }
+    }
+
+    /**
+     * @name curl -Post请求
+     * @author xyq
+     * @param $url
+     * @param $para
+     * @param int $time
+     * @return mixed
+     * @throws Exception
+     */
+    public static function httpPost($url, $para, $time = 5)
+    {
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_HEADER, 0); // 过滤HTTP头
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ["x-requested-with: XMLHttpRequest"]);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $time);//超时时间
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);// 显示输出结果
+        curl_setopt($curl, CURLOPT_POST, true); // post传输数据
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $para);// post传输数据
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE); // 对认证证书来源的检查
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE); // 从证书中检查SSL加密算法是否存在
+        curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; MSIE 5.01; Windows NT 5.0)'); // 模拟用户使用的浏览器
+//        $headers = array('content-type: application/x-www-form-urlencoded;charset=UTF-8');
+        //运行curl
+        $responseText = curl_exec($curl);
+        if ($responseText) {
+            curl_close($curl);
+            return $responseText;
+        } else {
+            $error = curl_errno($curl);
+            curl_close($curl);
+            if ($error == 0) {
+                return '';
+            }
+            throw new Exception("curl出错，错误码:$error");
+        }
+    }
+
+    /**
+     * @name 正则匹配图片URL
+     * @author xyq
+     * @param $url
+     * @return bool
+     */
+    public static function checkImageUrl($url)
+    {
+        if (preg_match('/(\w+)[\w\/\.\-]*(jpg|gif|png)/', $url)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @name 加密
+     * @author xyq
+     * @param $string
+     * @return array
+     */
+    public static function encrypt($string)
+    {
+        $string = base64_encode(Yii::$app->getSecurity()->encryptByKey($string, Yii::$app->params['securityKey']));
+        return rtrim(str_replace(['+', '/'], ['_', '-'], $string), '=');
+    }
+
+    /**
+     * @name 解密
+     * @author xyq
+     * @param $string
+     * @return string
+     */
+    public static function decrypt($string)
+    {
+        $string = str_pad(str_replace(['_', '-'], ['+', '/'], $string), strlen($string) % 4, '=', STR_PAD_RIGHT);
+        return Yii::$app->getSecurity()->decryptByKey(base64_decode($string), Yii::$app->params['securityKey']);
+    }
+
+    public static function Code()
+    {
+        return str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * @name 验证地址是否存在 ，不存在创建
+     * @author fch
+     * @param $dir
+     * @return mixed
+     * @throws Exception
+     */
+    public static function isDir($dir)
+    {
+        if (!is_dir($dir)) {
+            if (!mkdir($dir, 0777, true)) {
+                throw new Exception('路径创建失败');
+            }
+        }
+        return $dir;
+    }
+
+    /**
+     * @name 数组转成xml
+     * @author xyq
+     * @param $data
+     * @return string
+     * @throws Exception
+     */
+    public static function arrayToXml($data)
+    {
+        if (!is_array($data) || count($data) <= 0) {
+            throw new Exception("数组数据异常！");
+        }
+        $xml = "<xml>";
+        foreach ($data as $key => $val) {
+            if (is_array($val)) {
+                $child = [$key => $val];
+                self::toXmlChild($child, $xml);
+            } else {
+                if (is_numeric($val)) {
+                    $xml .= "<" . $key . ">" . $val . "</" . $key . ">";
+                } else {
+                    $xml .= "<" . $key . "><![CDATA[" . $val . "]]></" . $key . ">";
+                }
+            }
+        }
+        $xml .= "</xml>";
+        return $xml;
+    }
+
+    /**
+     * @name 组合子节点
+     * @author xyq
+     * @param $data
+     * @param $xml
+     */
+    private static function toXmlChild($data, &$xml)
+    {
+        foreach ($data as $key => $val) {
+            $xml .= "<" . $key . '>';
+            if (is_array($val)) {
+                foreach ($val as $k => $v) {
+                    if (is_array($v)) {
+                        if (!is_numeric($k)) {
+                            $child = [$k => $v];
+                        } else {
+                            $child = $v;
+                        }
+                        self::toXmlChild($child, $xml);
+                    } else {
+                        if (is_numeric($v)) {
+                            $xml .= "<" . $k . ">" . $v . "</" . $k . ">";
+                        } else {
+                            $xml .= "<" . $k . "><![CDATA[" . $v . "]]></" . $k . ">";
+                        }
+                    }
+                }
+            }
+            $xml .= "</" . $key . '>';
+        }
+    }
+
+    /**
+     * @name xml转成数组 （适合一维xml如微信支付等）
+     * @author xyq
+     * @param $xml
+     * @return mixed
+     */
+    public static function xmlToArray($xml)
+    {
+        return json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+    }
+
+    /**
+     * @name 返回支付方式名称
+     * @author xyq
+     * @param null $code
+     * @return array|string
+     */
+    public static function getPayName($code = null)
+    {
+        $arr = [
+            'alipay' => '支付宝',
+            'wechat' => '微信钱包',
+            'union' => '银行卡',
+        ];
+        if (is_string($code)) {
+            return isset($arr[$code]) ? $arr[$code] : '';
+        }
+        return $arr;
+    }
+
+    /**
+     * @name 返回审核状态名称
+     * @author xyq
+     * @param null $code
+     * @return array|string
+     */
+    public static function getAuditingStatusName($code = null)
+    {
+        $arr = [
+            0 => '待审核',
+            1 => '审核通过',
+            2 => '已驳回',
+            3 => '已取消',
+        ];
+        if (!is_null($code)) {
+            return isset($arr[$code]) ? $arr[$code] : '';
+        }
+        return $arr;
+    }
+
+    /**
+     * @name 解析URL参数
+     * @author xyq
+     * @param $query
+     * @return array
+     */
+    public static function convertUrlQuery($query)
+    {
+        $queryParts = explode('&', $query);
+
+        $params = array();
+        foreach ($queryParts as $param) {
+            $item = explode('=', $param);
+            $params[$item[0]] = $item[1];
+        }
+
+        return $params;
+    }
+
+    /**
+     * @name 设置cookie
+     * @author xyq
+     * @param $name
+     * @param null $value
+     * @param null $expire
+     * @param null $path
+     * @param null $domain
+     * @param null $secure
+     * @param null $httpOnly
+     */
+    public static function setCookie($name, $value = null, $expire = null, $path = null, $domain = null, $secure = null, $httpOnly = null)
+    {
+        if ($_SERVER['SERVER_PORT'] != 443) {
+            $secure = false;
+        } elseif (is_null($secure)) {
+            $secure = true;
+        }
+        setcookie($name, $value, $expire, $path, $domain, $secure, $httpOnly);
+    }
+
+    /**
+     * @name获取二级域名
+     * @author sunbingjie
+     * @return bool|string
+     */
+    public static function getSecondDomain($domain = '')
+    {
+        if (empty($domain)) {
+            $domain = $_SERVER['HTTP_HOST'];
+        }
+        $domainArray = explode('.', $domain);
+        if (count($domainArray) === 2) {//test.com
+            $domain = '.' . $domain;
+        } elseif (count($domainArray) === 3) {//www.test.com
+            $domain = '.' . $domainArray[1] . '.' . $domainArray[2];
+        } else {//www.test.com.cn
+            $domain = substr($domain, strpos($domain, '.'));
+        }
+        return $domain;
+    }
+
+    /**
+     * @name 构建URL ，搜索时的table选项卡
+     * @author xyq
+     * @param $url
+     * @return mixed
+     */
+    public static function buildUrl($url)
+    {
+        $get = Yii::$app->request->get();
+        $url = parse_url(urldecode($url));
+        if (isset($url['query']) && !empty($url['query'])) {
+            $query = Helper::convertUrlQuery($url['query']);
+            $request = array_merge($get, $query);
+            $url['query'] = http_build_query($request);
+        } elseif (!empty($get)) {
+            $url['query'] = http_build_query($get);
+        }
+        $newUrl = '';
+        if (isset($url['scheme'])) {
+            $newUrl .= $url['scheme'] . '://';
+        }
+        if (isset($url['host'])) {
+            $newUrl .= $url['host'];
+        }
+        if (isset($url['path'])) {
+            $newUrl .= $url['path'];
+        }
+        if (isset($url['query'])) {
+            $newUrl .= '?' . $url['query'];
+        }
+        return $newUrl;
+    }
+
+    /**
+     * @author TYP
+     * @comment 只允许数字和字母的出现
+     * @param $str
+     * @throws Exception
+     */
+    public static function checkStr($str)
+    {
+        if (!preg_match('|^[0-9a-zA-Z]+$|', trim(self::trimAll($str)))) {
+            throw new \Exception('不能包含中文或标点符号相关的字符！');
+        }
+    }
+
+    /**
+     * 解析URL
+     * @return mixed
+     */
+    public static function getCode()
+    {
+        $host = \Yii::$app->request->hostInfo;
+        $hostArray = explode(".", $host);
+        return str_replace(array("http://", "https://"), "", $hostArray[0]);
+    }
+
+    /**
+     * @name 获取总部默认头像
+     * @author kx
+     * @return string
+     */
+    public static function getAdminDefaultImg()
+    {
+        return 'https://oss.ruishan666.com/image/common/head.jpg';
+    }
+}

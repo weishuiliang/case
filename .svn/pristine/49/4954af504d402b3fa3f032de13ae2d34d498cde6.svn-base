@@ -1,0 +1,115 @@
+import React from 'react';
+import { Table } from 'antd';
+import moment from 'moment';
+import qs from 'qs';
+import API from '../../contants/ApiRoot';
+import {TASK_GET, TASK_END_POST} from '../../contants/actionTypes/task';
+
+import axios from 'axios';
+
+class TaskTable extends React.Component {
+	state = {
+		data: []
+	};
+	componentDidMount() {
+		const that = this;
+		axios.get(API[TASK_GET]).then(function(response) {
+			console.log(response);
+			that.setState({
+				data: response.data.data,
+			});
+		});
+	}
+
+	handleClickModify = (e) => {
+		e.preventDefault();
+		this.props.handleCloseModal();
+	}
+
+	handleFinishTask = (e, task_id) => {
+		e.preventDefault();
+		const params = {
+			task_id,
+			over_time: moment(Date.now()).format('X'),
+		}
+		axios({
+			method: 'post',
+			url: API[TASK_END_POST],
+			// url: '/api/task/task/task-over.json',
+			data: qs.stringify(params),
+			// data: params,
+		}).then(function(data) {
+				if(data.data.status.toString() === '1') {
+					alert('标记为完成成功');
+				} else {
+					alert('标记为完成失败');
+				}
+			}
+		)
+	}
+
+	render() {
+		const { handleClickModify } = this.props;
+		const columns = [
+			{
+				title: '任务名称',
+				dataIndex: 'task_name',
+				key: 'task_name',
+			},
+			{
+				title: '难度',
+				dataIndex: 'task_level_name',
+				key: 'task_level_name',
+			},
+			{
+				title: '前端',
+				dataIndex: 'front_user_name',
+				key: 'front_user_name',
+			},
+			{
+				title: '后端',
+				dataIndex: 'back_user_name',
+				key: 'back_user_name',
+			},
+			{
+				title: '开始时间（前端）',
+				dataIndex: 'front_start_time',
+				key: 'front_start_time',
+			},
+			{
+				title: '预计完成时间（前端）',
+				dataIndex: 'front_end_time',
+				key: 'front_end_time',
+			},
+			{
+				title: '开始时间（后端）',
+				dataIndex: 'back_start_time',
+				key: 'back_start_time',
+			},
+			{
+				title: '预计完成时间（后端）',
+				dataIndex: 'back_end_time',
+				key: 'back_end_time',
+			},
+			{
+				title: '实际完成时间',
+				dataIndex: 'over_time',
+				key: 'over_time',
+			},
+			{
+				title: '操作',
+				key: 'action',
+				render: (text, record) => (
+					<span>
+						<a href="#" onClick={(e) => this.handleClickModify(e)} >编辑</a>
+						<span className="ant-divider" />
+						<a href="#" onClick={(e) => this.handleFinishTask(e, record.task_id)}>标记为完成</a>
+					</span>
+				)
+			}
+		];
+		return <Table rowKey="task_id" columns={columns} dataSource={this.state.data} />;
+	}
+}
+
+export default TaskTable;

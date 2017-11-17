@@ -1,0 +1,9 @@
+/**
+ * 任务请求接口 api
+ */
+
+const api = {
+  'TASK_GET': '/api/task/task/task-list.json',
+};
+
+export default api;

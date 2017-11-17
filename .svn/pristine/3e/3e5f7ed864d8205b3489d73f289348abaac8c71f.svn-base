@@ -1,0 +1,41 @@
+<?php
+namespace manage\modules\task\services;
+
+use common\models\Task;
+use common\models\TaskProcess;
+use common\services\BaseService;
+
+/**
+ * Description of TaskService
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:19
+ */
+class TaskService extends BaseService
+{
+    
+    public function getTaskList()
+    {
+        $task_list = Task::find()
+                ->asArray()
+                ->all();
+        if (!empty($task_list)) {
+            foreach ($task_list as &$val) {
+                $val['process_list'] = TaskProcess::find()->where(['task_id' =>$val['task_id']])->asArray()->all();
+                
+            }
+        }
+        return $task_list;
+    }
+    
+    public function taskAdd($post)
+    {
+        $task_model = new Task();
+        $task_model->task_name = $post['task_name'];
+        $task_model->task_level = isset($post['task_level']) ? $post['task_level'] : 10;
+        $task_model->create_user = 1;
+        $task_model->create_time = time();
+        $is_save = $task_model->save();
+        return $is_save;
+    }
+}

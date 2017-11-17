@@ -1,0 +1,39 @@
+import React, { Component } from 'react';
+import { Router, Route, hashHistory, IndexRedirect } from 'react-router';
+import routeConfig from './routeConfig';
+
+class OARoute extends Component {
+
+	renderChildRoute(children) {
+		if (!children) return;
+		let childRoutes = [];
+		for (let i = 0; i < children.length; i++) {
+			if (children[i]['indexRedirect']) {
+				childRoutes[i] = (
+					<IndexRedirect key={children[i]['realPath']} to={children[i]['path']} />
+				);
+			} else {
+				childRoutes[i] = (
+					<Route
+						key={children[i]['realPath']}
+						path={children[i]['path']}
+						component={children[i]['component']}
+						onEnter={children[i]['onEnter']}>
+						{this.renderChildRoute(children[i]['children'])}
+					</Route>
+				);
+			}
+		}
+		return childRoutes;
+	}
+
+	render() {
+		return (
+			<Router history={this.props.history}>
+				{this.renderChildRoute(routeConfig)}
+			</Router>
+		)
+	}
+}
+
+export default OARoute;

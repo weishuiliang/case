@@ -1,0 +1,5 @@
+/**
+ * 组织结构 Action Types
+ */
+export const ORGANIZE_PERSON_LIST = 'ORGANIZE_PERSON_LIST';
+export const ORGANIZE_GROUP_LIST = 'ORGANIZE_GROUP_LIST';

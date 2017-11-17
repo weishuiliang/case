@@ -1,0 +1,11 @@
+/**
+ * 组织结构 API
+ */
+const api = {
+	'ORGANIZE_PERSON_LIST_GET':           '/home/user/user-list.json',
+	'ORGANIZE_GROUP_LIST_GET':            '/home/group/group-list.json',
+	'ORGANIZE_GROUP_ADD_POST':            '/home/group/group-add.json',
+	'ORGANIZE_PERSON_ADD_POST':           '/home/user/user-add.json',
+};
+
+export default api;

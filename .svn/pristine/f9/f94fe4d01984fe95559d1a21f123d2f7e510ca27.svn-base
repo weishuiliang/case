@@ -1,0 +1,27 @@
+<?php
+
+namespace manage\modules\home\services;
+
+use common\extensions\Helper;
+use common\models\Log;
+use common\services\BaseService;
+
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class LogService extends BaseService
+{
+    
+    public function getLogList()
+    {
+        $list = Log::find()->asArray()->all();
+        foreach ($list as &$val) {
+            $val['create_time'] = Helper::toDate($val['create_time']);
+        }
+        return $list;
+    }
+
+}

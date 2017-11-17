@@ -1,0 +1,29 @@
+import React from 'react';
+import { Upload, message, Button, Icon } from 'antd';
+import { openNotification } from '../../utils/utils';
+
+const props = {
+	name: 'task',
+	action: '',
+	onChange(info) {
+		if (info.file.status !== 'uploading') {
+			openNotification('info', "文件正在上传");
+		}
+		if (info.file.status === 'done') {
+			openNotification('success', "文件上传成功");
+		} else if (info.file.status === 'error') {
+			openNotification('error', "文件上传失败");
+		}
+	},
+}
+
+const UploadButton = (props) => (
+	<Upload {...props}>
+		<Button>
+			<Icon type="upload" />
+			从Excel文件上传
+		</Button>
+	</Upload>
+)
+
+export default UploadButton;

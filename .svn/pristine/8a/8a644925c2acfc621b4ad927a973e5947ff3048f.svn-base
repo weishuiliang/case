@@ -1,0 +1,30 @@
+/**
+ * 组织结构 -- 人员列表
+ */
+import * as types from '../../contants/actionTypes/organize';
+
+const initState = {
+	personList: [],
+	groupList: []
+};
+
+const organizeReducer = (state = initState, action) => {
+	switch(action.type) {
+		case types.ORGANIZE_PERSON_LIST_GET:
+			state = {
+				...state,
+				personList: [...action.data]
+			};
+			return state;
+		case types.ORGANIZE_GROUP_LIST_GET:
+			state = {
+				...state,
+				groupList: [...action.data]
+			};
+			return state;
+		default:
+			return state;
+	}
+};
+
+export default organizeReducer;

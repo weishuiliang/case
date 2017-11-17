@@ -1,0 +1,79 @@
+<?php
+
+namespace manage\modules\home\services;
+
+use common\extensions\Helper;
+use common\models\Role;
+use common\services\BaseService;
+
+/**
+ * Description of RoleService
+ *
+ * @author wsl
+ * @data 2017-11-9 15:23:20
+ */
+class RoleService extends BaseService
+{
+
+    /**
+     * @name 
+     * @author wsl
+     * @data 2017-11-9 15:23:20
+     */
+    public function getRoleList()
+    {
+        return Role::find()->asArray()->all();
+    }
+
+    public function roleAdd($post)
+    {
+        $model = new Role(); 
+        $model->position = $post['position'];
+        $model->group_id = $post['group_id'];
+        $model->create_time = time();
+        $is_save = $model->save();
+        if ($is_save) {
+            return $model->attributes;
+        }
+        return $is_save;
+    }
+    
+    public function getGroupPositionList($group_id)
+    {
+        return Role::find()->where(['group_id' =>$group_id])->asArray()->all();
+    }
+    
+    public function roleUpdate($post)
+    {
+        $model = Role::findOne(['role_id' =>$post['role_id']]);
+        if (!$model) {
+            return Helper::msg(0, '不存在该角色');
+        }
+        $model->position = $post['position'];
+        $model->group_id = $post['group_id'];
+        $is_save = $model->save();
+        if ($is_save) {
+            return Helper::msg(1, '更新成功', $model->attributes);
+        }
+        return Helper::msg(0, '更新成功');
+    }
+    
+    public function roleDel($role_id)
+    {
+        $model = Role::findOne(['role_id' =>$role_id]);
+        if (!$model) {
+            return Helper::msg(0, '不存在该角色');
+        }
+        $group_model = \common\models\Group::findOne(['group_id' =>$model->group_id, 'is_del' =>0]);
+        if ($group_model) {
+            return Helper::msg(0, $group_model->group_name . '正在使用该角色，不能删除');
+        }
+        $del = $model->delete();
+        if ($del) {
+            return Helper::msg(1, '删除成功');
+        }
+        return Helper::msg(0, '删除失败');
+    }
+    
+    
+}

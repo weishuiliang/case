@@ -1,0 +1,10 @@
+export const TASK_GET = 'TASK_GET';
+export const TASK_ADD_POST = 'TASK_ADD_POST';
+export const TASK_END_POST = 'TASK_END_POST';
+export const TASK_UPDATE_POST = 'TASK_UPDATE_POST';
+export const TASK_DEL_POST = 'TASK_DEL_POST';
+export const TASK_UPLOAD_POST = 'TASK_UPLOAD_POST';
+export const TASK_EXPORT_POST = 'TASK_EXPORT_POST';
+
+export const TASK_MODIFY_ID_CHANGE ='TASK_MODIFY_ID_CHANGE';
+export const TASK_FINISH = 'TASK_FINISH';

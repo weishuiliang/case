@@ -1,0 +1,87 @@
+/**
+ * 路由信息配置文件
+ */
+import { loginAuth } from './auth';
+//layout
+import Layout from '../containers/Layout/Layout';
+// project
+import Project from '../containers/Project/Project';
+import ProjectAdd from '../containers/Project/ProjectAdd';
+import ProjectList from '../containers/Project/ProjectList';
+// task
+import Task from '../containers/Task/Task';
+import AddTaskForm from '../containers/Task/AddTaskForm';
+// organize
+import OrganizePersonList from '../containers/Organize/OrganizePersonList';
+import OrganizeGroupList from '../containers/Organize/OrganizeGroup';
+// login
+import Login from 'containers/Login/Login';
+// not found
+import NotFound from 'containers/NotFound/NotFound';
+
+const routeConfig = [
+	{
+		path: '/',
+		realPath: '/',
+		component: Layout,
+		menuRoute: true,// child加入Menu中
+		children:[
+			{
+				path: '/task/list',
+				realPath: '/task/list',
+				indexRedirect: true
+			},
+			{
+				path: 'task',
+				realPath: '/task',
+				menuName: '任务',
+				children:[
+					{
+						path: 'list',
+						realPath: '/task/list',
+						menuName: '任务列表',
+						component: Task
+					},
+					{
+						path: 'add',
+						realPath: '/task/add',
+						menuName: '添加任务',
+						component: AddTaskForm
+					}
+				]
+			},
+			{
+				path: 'organize',
+				realPath: '/organize',
+				menuName: '组织',
+				children:[
+					{
+						path: 'person-list',
+						realPath: '/organize/person-list',
+						menuName: '部门列表',
+						component: OrganizePersonList
+					},
+					{
+						path: 'group-list',
+						realPath: '/organize/group-list',
+						menuName: '人员列表',
+						component: OrganizeGroupList
+					}
+				]
+			}
+		],
+		onEnter: loginAuth
+	},
+	{
+		path: '/login',
+		realPath: '/login',
+		component: Login
+	},
+	{
+		path: '*',
+		realPath: '*',
+		component: NotFound
+	}
+];
+
+export default routeConfig;

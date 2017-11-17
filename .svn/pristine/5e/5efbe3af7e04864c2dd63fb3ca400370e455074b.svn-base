@@ -1,0 +1,86 @@
+<?php
+
+namespace manage\modules\task\services;
+
+use common\extensions\Helper;
+use common\services\BaseService;
+use PHPExcel;
+use PHPExcel_IOFactory;
+use PHPExcel_Style_Alignment;
+
+class TaskExcelService extends BaseService
+{
+
+    public function __construct()
+    {
+        require_once(__DIR__ . '/../../../../common/extensions/phpexcel/PHPExcel.php');
+        require_once(__DIR__ . '/../../../../common/extensions/phpexcel/PHPExcel/IOFactory.php');
+    }
+
+    /**
+     * @name生成Excel表格数据
+     * @author sunbingjie
+     * @param $objPHPExcel
+     * @param $export_file_name
+     */
+    public function exportListToFile($objPHPExcel, $export_file_name)
+    {
+        header('Content-Type: application/vnd.ms-excel;charset=utf-8');
+        header('Content-Disposition: attachment;filename=' . $export_file_name . ".xls" . '');
+        header('Cache-Control: max-age=0');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        ob_clean();
+        $objWriter->save('php://output');
+        exit; //一定要紧跟exit 要不然会有列数限制或说文件损坏之类
+    }
+
+    /**
+     * @name 任务导出
+     * @author wsl
+     * @param $detailData
+     * @return PHPExcel
+     */
+    public function setTaskExportList($detailData)
+    {
+        $styleArray1 = array(
+            'alignment' => array(
+                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+            ),
+        );
+        $objPHPExcel = new PHPExcel();
+        $dao = $objPHPExcel->createSheet();
+        $objPHPExcel->setactivesheetindex(1);
+        $objPHPExcel->getactivesheet()->getStyle('A:I')->applyFromArray($styleArray1);
+        $objPHPExcel->getActiveSheet()->getDefaultColumnDimension()->setWidth(15);
+
+        $line_num = 1;
+        $dao->setcellvalue('A' . $line_num, '任务名称');
+        $dao->setcellvalue('B' . $line_num, '任务难度');
+        $dao->setcellvalue('C' . $line_num, '前端负责人');
+        $dao->setcellvalue('D' . $line_num, '后端负责人');
+        $dao->setcellvalue('E' . $line_num, '前端开始时间');
+        $dao->setcellvalue('F' . $line_num, '前端预计完成时间');
+        $dao->setcellvalue('G' . $line_num, '后端开始时间');
+        $dao->setcellvalue('H' . $line_num, '后端预计完成时间');
+        $dao->setcellvalue('I' . $line_num, '实际完成时间');
+        if ($detailData) {
+            foreach ($detailData as $item) {
+                $line_num++;
+                $dao->setCellValue('A' . $line_num, $item['task_name'])
+                        ->setCellValue('B' . $line_num, Helper::toChineseTaskLevel($item['task_level']))
+                        ->setcellvalue('C' . $line_num, isset($item['front_user_name']) ? $item['front_user_name'] : '')
+                        ->setcellvalue('D' . $line_num, isset($item['back_user_name']) ? $item['back_user_name'] : '')
+                        ->setcellvalue('E' . $line_num, isset($item['front_start_time']) ? Helper::toDateTime($item['front_start_time']) : '')
+                        ->setcellvalue('F' . $line_num, isset($item['front_end_time']) ? Helper::toDateTime($item['front_end_time']) : '')
+                        ->setcellvalue('G' . $line_num, isset($item['back_start_time']) ? Helper::toDateTime($item['back_start_time']) : '')
+                        ->setcellvalue('H' . $line_num, isset($item['back_end_time']) ? Helper::toDateTime($item['back_end_time']) : '')
+                        ->setcellvalue('I' . $line_num, isset($item['over_time']) ? Helper::toDateTime($item['over_time']) : '');
+            }
+        } else {
+            $objPHPExcel->getActiveSheet()->mergeCells('A2:D2');
+            $dao->setCellValue('A' . 2, '没有数据');
+        }
+        return $objPHPExcel;
+    }
+
+}

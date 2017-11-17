@@ -1,0 +1,53 @@
+<?php
+namespace manage\modules\home\services;
+
+use common\models\User;
+use common\services\BaseService;
+/**
+ * Description of HomeServices
+ *
+ * @author wsl
+ * @data 2017-11-6 9:49:00
+ */
+class UserService extends BaseService
+{
+    
+    
+    public function userAdd($post)
+    {
+        $user_model = new User();
+        $user_model->account = $post['account'];
+        $salt = substr(md5(time()), 5, 6);
+        $user_model->pwd = md5('123456' . $salt); //默认密码123456
+        $user_model->salt = $salt;
+        $user_model->name = $post['name'];;
+        $user_model->group_id = isset($post['group_id']) ? $post['group_id'] : 0;
+        $is_save = $user_model->save();
+//        var_dump($user_model->getErrors());
+        return $is_save;
+    }
+
+    public function getUserList()
+    {
+        return User::find()->asArray()->all(); 
+    }
+    
+    public function userUpdate($post)
+    {
+        $model = User::findOne(['user_id' =>$post['user_id']]);
+        if (isset($post['name']) && !empty($post['name'])) {
+            $model->name = $post['name'];
+        }
+        if (isset($post['mobile']) && !empty($post['mobile'])) {
+            $model->mobile = $post['mobile'];
+        }
+        if (isset($post['position']) && !empty($post['position'])) {
+            $model->position = $post['position'];
+        }
+        if (isset($post['is_del']) && !empty($post['is_del'])) {
+            $model->is_del = $post['is_del'];
+        }
+        return $model->save();
+    }
+    
+}

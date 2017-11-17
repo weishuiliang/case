@@ -1,0 +1,45 @@
+import React, { Component } from 'react';
+import { Router, Route, hashHistory, IndexRedirect } from 'react-router';
+//components
+import Layout from '../containers/Layout/Layout';
+// project
+import Project from '../containers/Project/Project';
+import ProjectAdd from '../containers/Project/ProjectAdd';
+import ProjectList from '../containers/Project/ProjectList';
+// task
+import Task from '../containers/Task/Task';
+import AddTaskForm from '../containers/Task/AddTaskForm';
+// organize
+import OrganizePersonList from '../containers/Organize/OrganizePersonList';
+import OrganizeGroupList from '../containers/Organize/OrganizeGroupList';
+// not found
+import NotFound from 'containers/NotFound/NotFound';
+
+class OARoute extends Component {
+	render() {
+		return (
+			<Router history={this.props.history}>
+				<Route path={'/'} components={Layout}>
+					<IndexRedirect to="/project/list" />
+					<Route path={'project'} component={Project}>
+						<Route path={'list'} component={ProjectList} />
+						<Route path={'add'} component={ProjectAdd} />
+					</Route>
+					<Route path={'task'} >
+						<Route path={'list'} component={Task} />
+						<Route path={'add'} component={AddTaskForm} />
+					</Route>
+					<Route path={'organize'}>
+						<Route path={'person-list'} component={OrganizePersonList}/>
+						<Route path={'group-list'} component={OrganizeGroupList}/>
+						<Route path={'add-person'}/>
+						<Route path={'add-group'}/>
+					</Route>
+				</Route>
+				<Route path={'*'} component={NotFound}/>
+			</Router>
+		)
+	}
+}
+
+export default OARoute;

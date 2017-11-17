@@ -1,0 +1,75 @@
+/**
+ * 人员Reducer
+ */
+import * as types from '../../contants/actionTypes/organize';
+
+const initState = {
+	positionList: {
+		list: [],
+		loading: false
+	},
+};
+
+const editPosition = (array, data) => {
+	let personArray = [...array];
+	for (let i = 0; i < personArray.length; i++) {
+		if (personArray[i].user_id == data.user_id) {
+			personArray[i] = {...personArray[i], ...data}
+		}
+	}
+	return personArray;
+};
+
+export const organizePosition = (state = initState, action) => {
+	switch(action.type) {
+		case types.ORGANIZE_POSITION_LIST_GET + '_TABLE_LOADING':
+			state = {
+				...state,
+				positionList: {
+					...state.positionList,
+					loading: true
+				}
+			};
+			return state;
+		case types.ORGANIZE_POSITION_LIST_GET + '_SUCCESS':
+			state = {
+				...state,
+				positionList: {
+					...state.positionList,
+					list: [...action.data],
+					loading: false
+				}
+			};
+			return state;
+		case types.ORGANIZE_POSITION_LIST_GET + '_ERROR':
+			state = {
+				...state,
+				positionList: {
+					...state.positionList,
+					loading: false
+				}
+			};
+			return state;
+		case types.ORGANIZE_POSITION_ADD_POST + '_SUCCESS':
+			state = {
+				...state,
+				positionList: {
+					...state.positionList,
+					list: [action.data, ...state.positionList.list]
+				}
+			};
+			return state;
+		case types.ORGANIZE_POSITION_EDIT_POST + '_SUCCESS':
+			state = {
+				...state,
+				positionList: {
+					...state.positionList,
+					list: editPosition(state.positionList.list, action.data)
+				}
+			};
+			return state;
+		default:
+			return state;
+	}
+};
+
